@@ -1,0 +1,107 @@
+import { CONFIG } from '../config.js';
+import GameState from '../state/GameState.js';
+import { calculateEnemyHP, calculateEnemyEXP } from '../utils/MathUtils.js';
+import ConquestManager from '../systems/ConquestManager.js';
+
+/** Enemy — Sağdan spawn, sola yürü, lava veya savunucu ölümü. */
+export default class Enemy {
+  constructor(scene, type, waveNumber, laneY) {
+    this.scene = scene;
+    this.type = type;
+    this.alive = true;
+    this.dying = false;
+
+    const config = CONFIG.ENEMIES[type];
+    this.name = config.name;
+    this.speed = config.speed;
+    this.foodReward = config.food;
+    this.maxHP = calculateEnemyHP(config.hp, CONFIG.WAVES.hpScaling, waveNumber);
+    this.currentHP = this.maxHP;
+    this.expReward = calculateEnemyEXP(config.exp, CONFIG.WAVES.expScaling, waveNumber);
+
+    this.sprite = scene.add.image(CONFIG.SPAWN_X, laneY, `enemy-${type}`).setDepth(10).setAlpha(0);
+    scene.tweens.add({ targets: this.sprite, alpha: 1, duration: 200 });
+
+    this.hpBarWidth = 20;
+    this.hpBarHeight = 3;
+    this.hpBar = scene.add.graphics().setDepth(11);
+  }
+
+  update(delta) {
+    if (!this.alive || this.dying) return;
+    this.sprite.x -= this.speed * delta;
+    this.updateHPBar();
+    if (this.sprite.x <= CONFIG.LAVA_X + 20) this.dieToLava();
+  }
+
+  takeDamage(amount) {
+    if (!this.alive || this.dying) return false;
+    this.currentHP -= amount;
+    this.updateHPBar();
+    if (this.currentHP <= 0) { this.currentHP = 0; this.dieToDefender(); return true; }
+    return false;
+  }
+
+  dieToDefender() {
+    if (this.dying) return;
+    this.dying = true; this.alive = false;
+    const expMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('expMultiplier');
+    const foodMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('foodMultiplier');
+    const exp = this.expReward * expMult;
+    const food = this.foodReward * foodMult;
+    this._grantRewards(exp, food, 'defender');
+    this.sprite.setTint(0xffffff);
+    this.scene.tweens.add({
+      targets: this.sprite, scaleX: 1.5, scaleY: 1.5, alpha: 0, duration: 300, ease: 'Power2',
+      onComplete: () => { this.dying = false; this.destroy(); },
+    });
+    this.hpBar.clear();
+  }
+
+  dieToLava() {
+    if (this.dying) return;
+    this.dying = true; this.alive = false;
+    const expMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('expMultiplier');
+    const foodMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('foodMultiplier');
+    const exp = Math.floor(this.expReward * 0.5 * expMult);
+    const food = Math.floor(this.foodReward * 0.5 * foodMult);
+    this._grantRewards(exp, food, 'lava');
+    this.sprite.setTint(CONFIG.COLORS.LAVA);
+    const lavaY = CONFIG.CANVAS_HEIGHT - CONFIG.LAVA_HEIGHT + 10;
+    this.scene.tweens.add({
+      targets: this.sprite, y: lavaY, alpha: 0, scaleX: 0.5, scaleY: 0.3, duration: 400, ease: 'Power2',
+      onComplete: () => { this.dying = false; this.destroy(); },
+    });
+    this.hpBar.clear();
+  }
+
+  _grantRewards(exp, food, killedBy) {
+    GameState.resources.exp += exp;
+    GameState.resources.food += food;
+    GameState.wave.enemiesKilled++;
+    GameState.stats.totalEnemiesKilled++;
+    GameState.stats.totalExpEarned += exp;
+    GameState.stats.totalFoodEarned += food;
+    this.scene.events.emit('enemy-killed', {
+      type: this.type, exp, food,
+      x: this.sprite.x, y: this.sprite.y, killedBy,
+    });
+  }
+
+  updateHPBar() {
+    this.hpBar.clear();
+    if (!this.alive || this.currentHP >= this.maxHP) return;
+    const bx = this.sprite.x - this.hpBarWidth / 2;
+    const by = this.sprite.y - 14;
+    this.hpBar.fillStyle(CONFIG.COLORS.HP_BAR_BG, 0.8);
+    this.hpBar.fillRect(bx, by, this.hpBarWidth, this.hpBarHeight);
+    const ratio = Math.max(0, this.currentHP / this.maxHP);
+    this.hpBar.fillStyle(ratio > 0.3 ? CONFIG.COLORS.HP_BAR_FILL : CONFIG.COLORS.HP_BAR_LOW, 1);
+    this.hpBar.fillRect(bx, by, this.hpBarWidth * ratio, this.hpBarHeight);
+  }
+
+  destroy() {
+    this.sprite?.destroy(); this.sprite = null;
+    this.hpBar?.destroy();  this.hpBar = null;
+  }
+}

@@ -1,0 +1,276 @@
+import { CONFIG } from '../config.js';
+import GameState from '../state/GameState.js';
+import WaveManager from '../systems/WaveManager.js';
+import IdleManager from '../systems/IdleManager.js';
+import LaserMonument from '../entities/LaserMonument.js';
+import Archer from '../entities/Archer.js';
+import Cannon from '../entities/Cannon.js';
+import { formatNumber } from '../utils/NumberFormatter.js';
+
+/**
+ * GameScene — Ana savaş alanı.
+ * Duvar, lavalar, şeritler, savunucular, dalga yönetimi.
+ */
+export default class GameScene extends Phaser.Scene {
+  constructor() { super({ key: 'GameScene' }); }
+
+  create() {
+    this.drawBackground();
+    this.drawWall();
+    this.drawLava();
+    this.drawLanes();
+
+    // Savunucular
+    this.laserMonument = new LaserMonument(this, CONFIG.DEFENDER_X, 250);
+    this.archers = [];
+    this.cannons = [];
+
+    // Dalga yöneticisi
+    this.waveManager = new WaveManager(this);
+
+    // Floating text listesi
+    this.floatingTexts = [];
+
+    // Event dinleyicileri
+    this.events.on('enemy-killed', this.onEnemyKilled, this);
+    this.events.on('wave-complete', this.onWaveComplete, this);
+
+    // UIScene'i başlat
+    this.scene.launch('UIScene');
+
+    // Idle kazancı varsa popup göster
+    const idleEarnings = this.registry.get('idleEarnings');
+    if (idleEarnings) {
+      this.registry.remove('idleEarnings');
+      this.showIdlePopup(idleEarnings);
+    }
+  }
+
+  /** Idle gelir popup'ı gösterir. */
+  showIdlePopup(earnings) {
+    const cx = CONFIG.CANVAS_WIDTH / 2;
+    const cy = CONFIG.CANVAS_HEIGHT / 2;
+
+    // Arka plan
+    const bg = this.add.rectangle(cx, cy, 320, 180, 0x0a0a2a, 0.95).setDepth(300).setStrokeStyle(2, 0xffd700);
+    const hours = Math.floor(earnings.elapsedSeconds / 3600);
+    const mins = Math.floor((earnings.elapsedSeconds % 3600) / 60);
+    const timeStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+
+    const title = this.add.text(cx, cy - 60, '⏰ Welcome Back!', {
+      fontSize: '18px', fontFamily: 'monospace', color: '#ffd700',
+      stroke: '#000', strokeThickness: 2,
+    }).setOrigin(0.5).setDepth(301);
+
+    const info = this.add.text(cx, cy - 25, `You were away for ${timeStr}`, {
+      fontSize: '12px', fontFamily: 'monospace', color: '#aaaaaa',
+      stroke: '#000', strokeThickness: 1,
+    }).setOrigin(0.5).setDepth(301);
+
+    const expLine = this.add.text(cx, cy + 5, `⚡ +${formatNumber(earnings.exp)} EXP`, {
+      fontSize: '16px', fontFamily: 'monospace', color: '#ffd700',
+      stroke: '#000', strokeThickness: 1,
+    }).setOrigin(0.5).setDepth(301);
+
+    const foodLine = this.add.text(cx, cy + 30, `🍖 +${formatNumber(earnings.food)} Food`, {
+      fontSize: '16px', fontFamily: 'monospace', color: '#66ff66',
+      stroke: '#000', strokeThickness: 1,
+    }).setOrigin(0.5).setDepth(301);
+
+    // Topla butonu
+    const collectBtn = this.add.rectangle(cx, cy + 65, 120, 30, 0x1a6a1a).setDepth(302).setInteractive({ useHandCursor: true });
+    const collectLabel = this.add.text(cx, cy + 65, 'COLLECT', {
+      fontSize: '14px', fontFamily: 'monospace', color: '#ffffff',
+      stroke: '#000', strokeThickness: 1,
+    }).setOrigin(0.5).setDepth(303);
+
+    collectBtn.on('pointerover', () => collectBtn.setFillStyle(0x2a8a2a));
+    collectBtn.on('pointerout', () => collectBtn.setFillStyle(0x1a6a1a));
+    collectBtn.on('pointerdown', () => {
+      IdleManager.applyEarnings(earnings);
+      // Elementleri temizle
+      [bg, title, info, expLine, foodLine, collectBtn, collectLabel].forEach(el => el.destroy());
+    });
+  }
+
+  // ═══════════════ Çizim ═══════════════
+  drawBackground() {
+    this.add.rectangle(
+      CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2,
+      CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT, CONFIG.COLORS.SKY
+    ).setDepth(0);
+
+    // Zemin
+    const groundY = CONFIG.CANVAS_HEIGHT - CONFIG.LAVA_HEIGHT;
+    this.add.rectangle(
+      CONFIG.CANVAS_WIDTH / 2, groundY - 75,
+      CONFIG.CANVAS_WIDTH, 150, CONFIG.COLORS.GROUND
+    ).setDepth(0);
+  }
+
+  drawWall() {
+    const wallH = CONFIG.CANVAS_HEIGHT - CONFIG.LAVA_HEIGHT - 30;
+    // Ana duvar
+    this.add.rectangle(CONFIG.WALL_X, wallH / 2 + 30, 30, wallH, CONFIG.COLORS.WALL).setDepth(2);
+    // Üst kısım
+    this.add.rectangle(CONFIG.WALL_X, 30, 34, 8, CONFIG.COLORS.WALL_TOP).setDepth(3);
+
+    // Tuğla deseni
+    const brickG = this.add.graphics().setDepth(3);
+    brickG.lineStyle(1, 0x3a3a5a, 0.4);
+    for (let row = 0; row < wallH / 12; row++) {
+      const by = 34 + row * 12;
+      brickG.lineBetween(CONFIG.WALL_X - 15, by, CONFIG.WALL_X + 15, by);
+      const offset = row % 2 === 0 ? 0 : 10;
+      for (let bx = CONFIG.WALL_X - 15 + offset; bx < CONFIG.WALL_X + 15; bx += 20) {
+        brickG.lineBetween(bx, by, bx, by + 12);
+      }
+    }
+  }
+
+  drawLava() {
+    const lavaY = CONFIG.CANVAS_HEIGHT - CONFIG.LAVA_HEIGHT;
+    // Ana lava
+    this.lavaRect = this.add.rectangle(
+      CONFIG.LAVA_X / 2, lavaY + CONFIG.LAVA_HEIGHT / 2,
+      CONFIG.LAVA_X, CONFIG.LAVA_HEIGHT, CONFIG.COLORS.LAVA
+    ).setDepth(1).setAlpha(0.8);
+
+    // Lava glow animasyonu
+    this.tweens.add({
+      targets: this.lavaRect, alpha: 0.6,
+      duration: 1500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+    });
+
+    // Glow efekti üstte
+    const glowRect = this.add.rectangle(
+      CONFIG.LAVA_X / 2, lavaY, CONFIG.LAVA_X + 10, 6, CONFIG.COLORS.LAVA_GLOW
+    ).setDepth(2).setAlpha(0.3);
+    this.tweens.add({
+      targets: glowRect, alpha: 0.1,
+      duration: 1000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+    });
+  }
+
+  drawLanes() {
+    const g = this.add.graphics().setDepth(1);
+    const corridorTop = 150;
+    const corridorBottom = CONFIG.CANVAS_HEIGHT - CONFIG.LAVA_HEIGHT - 30;
+    const laneSpacing = (corridorBottom - corridorTop) / 4;
+
+    g.lineStyle(1, CONFIG.COLORS.GROUND_LIGHT, 0.3);
+    for (let i = 0; i <= 4; i++) {
+      const y = corridorTop + laneSpacing * i;
+      g.lineBetween(CONFIG.WALL_X + 20, y, CONFIG.CANVAS_WIDTH, y);
+    }
+  }
+
+  // ═══════════════ Güncelleme ═══════════════
+  update(time, deltaMs) {
+    const delta = deltaMs / 1000;
+
+    // Dalga yöneticisi
+    this.waveManager.update(delta);
+
+    // Tüm düşmanlar listesi
+    const enemies = this.waveManager.enemies;
+
+    // Laser Monument (her zaman aktif)
+    this.laserMonument.update(delta, enemies);
+
+    // Archers
+    this.syncDefenders('archer', this.archers, Archer);
+    for (const a of this.archers) a.update(delta, enemies);
+
+    // Cannons
+    this.syncDefenders('cannon', this.cannons, Cannon);
+    for (const c of this.cannons) c.update(delta, enemies);
+
+    // Floating text güncelleme
+    this.updateFloatingTexts(delta);
+  }
+
+  /** Savunucu sayısını GameState ile senkronize eder. */
+  syncDefenders(type, list, DefenderClass) {
+    const state = GameState.defenders[type];
+    const targetCount = state.count || 0;
+
+    while (list.length < targetCount) {
+      const idx = list.length;
+      const corridorTop = 150;
+      const corridorBottom = CONFIG.CANVAS_HEIGHT - CONFIG.LAVA_HEIGHT - 30;
+      const spacing = (corridorBottom - corridorTop) / 6;
+      const y = corridorTop + spacing * (idx + 1);
+      const x = CONFIG.DEFENDER_X + (type === 'cannon' ? 30 : 15);
+      list.push(new DefenderClass(this, x, y, idx));
+    }
+
+    while (list.length > targetCount) {
+      const removed = list.pop();
+      removed.destroy();
+    }
+  }
+
+  // ═══════════════ Olaylar ═══════════════
+  onEnemyKilled(data) {
+    if (data.exp > 0) {
+      this.showFloatingText(`+${Math.floor(data.exp)} EXP`, data.x, data.y - 10, CONFIG.COLORS.UI_GOLD);
+    }
+    if (data.food > 0) {
+      this.showFloatingText(`+${Math.floor(data.food)} Food`, data.x, data.y + 5, CONFIG.COLORS.ENEMY_FOOD);
+    }
+    // Ölüm parçacık efekti
+    this.spawnDeathParticles(data.x, data.y, data.killedBy);
+  }
+
+  /** Basit ölüm parçacık efekti. */
+  spawnDeathParticles(x, y, killedBy) {
+    const color = killedBy === 'lava' ? CONFIG.COLORS.LAVA : 0xffffff;
+    const count = killedBy === 'lava' ? 4 : 6;
+    for (let i = 0; i < count; i++) {
+      const px = x + (Math.random() - 0.5) * 10;
+      const py = y + (Math.random() - 0.5) * 10;
+      const size = 2 + Math.random() * 3;
+      const p = this.add.circle(px, py, size, color, 0.8).setDepth(40);
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 20 + Math.random() * 30;
+      this.tweens.add({
+        targets: p,
+        x: px + Math.cos(angle) * dist,
+        y: py + Math.sin(angle) * dist,
+        alpha: 0,
+        scaleX: 0.2,
+        scaleY: 0.2,
+        duration: 300 + Math.random() * 200,
+        ease: 'Power2',
+        onComplete: () => p.destroy(),
+      });
+    }
+  }
+
+  onWaveComplete(data) {
+    this.showFloatingText(
+      `Wave ${data.completedWave} Complete!`,
+      CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2 - 30,
+      0xffd700, 24, 1500
+    );
+  }
+
+  showFloatingText(text, x, y, color = 0xffffff, size = 14, duration = 800) {
+    const t = this.add.text(x, y, text, {
+      fontSize: `${size}px`, fontFamily: 'monospace',
+      color: `#${color.toString(16).padStart(6, '0')}`,
+      stroke: '#000', strokeThickness: 2,
+    }).setOrigin(0.5).setDepth(50).setAlpha(1);
+
+    this.tweens.add({
+      targets: t, y: y - 30, alpha: 0, duration,
+      ease: 'Power1',
+      onComplete: () => t.destroy(),
+    });
+  }
+
+  updateFloatingTexts(_delta) {
+    // Tweens yönetiyor, ekstra bir şeye gerek yok
+  }
+}

@@ -1,0 +1,124 @@
+import { CONFIG } from '../config.js';
+import { distance } from '../utils/MathUtils.js';
+
+/**
+ * Projectile — Ok veya gülle mermisi.
+ * Hedefe doğru hareket, çarpma tespiti, AoE patlama efekti.
+ */
+export default class Projectile {
+  constructor(scene, x, y, target, type, damage, blastRadius = 0) {
+    this.scene = scene;
+    this.target = target;
+    this.type = type; // 'arrow' | 'cannonball'
+    this.damage = damage;
+    this.blastRadius = blastRadius;
+    this.alive = true;
+
+    const pConfig = CONFIG.PROJECTILES[type];
+    this.speed = pConfig.speed;
+
+    const texKey = `projectile-${type}`;
+    this.sprite = scene.add.image(x, y, texKey).setDepth(15);
+
+    // Hedef pozisyonu kaydet (hedef ölse bile oraya git)
+    this.targetX = target.sprite ? target.sprite.x : x + 100;
+    this.targetY = target.sprite ? target.sprite.y : y;
+  }
+
+  update(delta, enemies) {
+    if (!this.alive) return;
+
+    // Hedef hâlâ yaşıyorsa pozisyonu güncelle
+    if (this.target && this.target.alive && this.target.sprite) {
+      this.targetX = this.target.sprite.x;
+      this.targetY = this.target.sprite.y;
+    }
+
+    // Hareket
+    const dx = this.targetX - this.sprite.x;
+    const dy = this.targetY - this.sprite.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (dist < 10) {
+      this.hit(enemies);
+      return;
+    }
+
+    const vx = (dx / dist) * this.speed * delta;
+    const vy = (dy / dist) * this.speed * delta;
+    this.sprite.x += vx;
+    this.sprite.y += vy;
+
+    // Ok rotasyonu
+    if (this.type === 'arrow') {
+      this.sprite.rotation = Math.atan2(dy, dx);
+    }
+
+    // Ekran dışı kontrolü
+    if (this.sprite.x > CONFIG.CANVAS_WIDTH + 20 || this.sprite.x < -20 ||
+        this.sprite.y > CONFIG.CANVAS_HEIGHT + 20 || this.sprite.y < -20) {
+      this.destroy();
+    }
+  }
+
+  hit(enemies) {
+    if (!this.alive) return;
+
+    if (this.blastRadius > 0) {
+      // AoE — gülle patlaması
+      this.aoeHit(enemies);
+      this.explosionEffect();
+    } else {
+      // Tekli hasar — ok
+      if (this.target && this.target.alive && !this.target.dying) {
+        this.target.takeDamage(this.damage);
+      }
+      this.hitEffect();
+    }
+    this.destroy();
+  }
+
+  aoeHit(enemies) {
+    for (const enemy of enemies) {
+      if (!enemy.alive || enemy.dying || !enemy.sprite) continue;
+      const d = distance(this.sprite.x, this.sprite.y, enemy.sprite.x, enemy.sprite.y);
+      if (d <= this.blastRadius) {
+        // Uzaklığa bağlı hasar azalması: %50 – %100
+        const falloff = 1 - (d / this.blastRadius) * 0.5;
+        const finalDamage = Math.floor(this.damage * falloff);
+        enemy.takeDamage(finalDamage);
+      }
+    }
+  }
+
+  hitEffect() {
+    const spark = this.scene.add.circle(this.sprite.x, this.sprite.y, 4, 0xffffff).setDepth(20).setAlpha(0.8);
+    this.scene.tweens.add({
+      targets: spark, alpha: 0, scaleX: 2, scaleY: 2, duration: 150,
+      onComplete: () => spark.destroy(),
+    });
+  }
+
+  explosionEffect() {
+    const cx = this.sprite.x, cy = this.sprite.y;
+    // Dış halka
+    const ring = this.scene.add.circle(cx, cy, 5, CONFIG.COLORS.CANNON, 0.6).setDepth(20);
+    this.scene.tweens.add({
+      targets: ring, scaleX: this.blastRadius / 5, scaleY: this.blastRadius / 5,
+      alpha: 0, duration: 300, ease: 'Power2',
+      onComplete: () => ring.destroy(),
+    });
+    // İç parlama
+    const core = this.scene.add.circle(cx, cy, 3, 0xffff00, 0.9).setDepth(21);
+    this.scene.tweens.add({
+      targets: core, scaleX: 3, scaleY: 3, alpha: 0, duration: 200,
+      onComplete: () => core.destroy(),
+    });
+  }
+
+  destroy() {
+    this.alive = false;
+    this.sprite?.destroy();
+    this.sprite = null;
+  }
+}
