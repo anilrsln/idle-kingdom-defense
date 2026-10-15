@@ -107,6 +107,41 @@ export default class UIScene extends Phaser.Scene {
     this.game.events.off('achievement-unlocked', this.showAchievementToast, this);
     this.game.events.on('achievement-unlocked', this.showAchievementToast, this);
     this.events.once('shutdown', () => this.game.events.off('achievement-unlocked', this.showAchievementToast, this));
+
+    // Wave milestone bildirimi
+    const gs2 = this.scene.get('GameScene');
+    gs2.events.on('wave-milestone', this.showMilestoneToast, this);
+    this.events.once('shutdown', () => gs2.events.off('wave-milestone', this.showMilestoneToast, this));
+  }
+
+  /** Wave milestone ödülü bildirimi. */
+  showMilestoneToast(data) {
+    if (this._milestoneToast) this._milestoneToast.forEach(e => e.destroy());
+    const cx = CONFIG.CANVAS_WIDTH / 2, y = 100;
+    const isBig = data.isBig;
+    const borderColor = isBig ? 0xffd700 : 0x66ccff;
+    const titleTxt = isBig ? `🌟 Büyük Milestone! Dalga ${data.wave}` : `⚡ Milestone! Dalga ${data.wave}`;
+    const rewardTxt = `+${formatNumber(data.expReward)} EXP  +${formatNumber(data.foodReward)} 🍖`;
+    const bgColor = isBig ? 0x1a1000 : 0x001a1a;
+    const bg = this.add.rectangle(cx, y, 320, isBig ? 52 : 46, bgColor, 0.97).setDepth(252).setStrokeStyle(2, borderColor);
+    const title = this.add.text(cx, y - 10, titleTxt, this.textStyle(isBig ? 13 : 12, isBig ? '#ffd700' : '#66ccff')).setOrigin(0.5).setDepth(253);
+    const reward = this.add.text(cx, y + 10, rewardTxt, this.textStyle(11, '#ffffff')).setOrigin(0.5).setDepth(253);
+    const els = [bg, title, reward];
+    this._milestoneToast = els;
+    els.forEach(e => e.setAlpha(0));
+    this.tweens.add({ targets: els, alpha: 1, duration: 300 });
+    if (isBig) {
+      // Büyük milestone için hafif pulse animasyonu
+      this.tweens.add({ targets: bg, scaleX: 1.04, scaleY: 1.04, duration: 200, yoyo: true, repeat: 2, ease: 'Sine.easeInOut' });
+    }
+    const dur = isBig ? 4000 : 3000;
+    this.time.delayedCall(dur, () => {
+      this.tweens.add({
+        targets: els, alpha: 0, duration: 500,
+        onComplete: () => els.forEach(e => e.destroy()),
+      });
+      if (this._milestoneToast === els) this._milestoneToast = null;
+    });
   }
 
   /** Başarım açıldığında üstte kısa bir bildirim. */

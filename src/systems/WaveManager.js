@@ -87,16 +87,38 @@ export default class WaveManager {
   }
 
   completeWave() {
+    const completedWave = GameState.wave.current;
     GameState.stats.totalWavesCompleted++;
     GameState.wave.current++;
     this.scene.events.emit('wave-complete', {
-      completedWave: GameState.wave.current - 1,
+      completedWave,
       nextWave: GameState.wave.current,
     });
     this.scene.game.events.emit('sfx', 'waveComplete');
     this.isWaveBreak = true;
     this.waveBreakTimer = CONFIG.WAVES.timeBetweenWaves;
     this.calculateWaveEnemies();
+
+    // Milestone kontrolü
+    const mc = CONFIG.MILESTONE;
+    if (mc && completedWave > 0 && completedWave % mc.milestoneInterval === 0) {
+      const milestoneIndex = completedWave / mc.milestoneInterval; // 1,2,3,...
+      const isBig = milestoneIndex % mc.bigMilestoneEvery === 0;
+      const mult = isBig ? mc.bigMultiplier : 1;
+      // Mevcut ölçülen kazanım hızı ile bonus hesapla (saniye cinsinden)
+      // expRate/foodRate: ölçülen gerçek kazanım hızı (0 ise wave'e göre fallback)
+      const waveFallback = completedWave * 0.5; // wave başına ~0.5 exp/s kaba tahmin
+      const expReward  = Math.floor((GameState.meta.expRate  || waveFallback) * mc.expBonus  * mult);
+      const foodReward = Math.floor((GameState.meta.foodRate || waveFallback * 0.3) * mc.foodBonus * mult);
+      GameState.resources.exp  += expReward;
+      GameState.resources.food += foodReward;
+      GameState.stats.totalExpEarned  += expReward;
+      GameState.stats.totalFoodEarned += foodReward;
+      this.scene.game.events.emit('sfx', isBig ? 'bigMilestone' : 'milestone');
+      this.scene.events.emit('wave-milestone', {
+        wave: completedWave, isBig, expReward, foodReward,
+      });
+    }
   }
 
   update(delta) {

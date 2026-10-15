@@ -175,6 +175,17 @@ export const CONFIG = {
     typeUnlocks: { skeleton: 1, armored: 5, fast: 8, foodCarrier: 3, elite: 15, shield: 10, splitter: 12, healer: 14 },
   },
 
+  // Wave milestone ödülleri — her milestoneInterval wave'de bir bonus
+  // bigMilestoneEvery: bu katında 'büyük' milestone (3x çarpan)
+  // expBonus/foodBonus: o anki gelir oranına göre kaç saniyelik bonus
+  MILESTONE: {
+    milestoneInterval: 25,   // her 25. wave'de milestone
+    bigMilestoneEvery: 2,    // her 2. milestone (50, 100, …) büyük milestone
+    expBonus: 60,            // 60 saniyelik EXP kazancı
+    foodBonus: 60,           // 60 saniyelik Food kazancı
+    bigMultiplier: 3,        // büyük milestone'da 3x
+  },
+
   // Prestige
   PRESTIGE: { multiplierPerPrestige: 0.5 },
 
@@ -210,6 +221,8 @@ export const CONFIG = {
       prestige:      { engine: 'sequence', type: 'sawtooth', gain: 0.30, notes: [{ freq: 392, duration: 0.12 }, { freq: 523, duration: 0.12 }, { freq: 659, duration: 0.12 }, { freq: 1047, duration: 0.22 }] },
       uiDenied:      { engine: 'tone',  type: 'square',   freq: 220, freqEnd: 160, duration: 0.10, gain: 0.14, throttleMs: 80 },
       mapOpen:       { engine: 'tone',  type: 'sine',     freq: 440, freqEnd: 660, duration: 0.10, gain: 0.18 },
+      milestone:     { engine: 'sequence', type: 'sine', gain: 0.32, notes: [{ freq: 659, duration: 0.09 }, { freq: 784, duration: 0.09 }, { freq: 1047, duration: 0.18 }] },
+      bigMilestone:  { engine: 'sequence', type: 'triangle', gain: 0.36, notes: [{ freq: 523, duration: 0.09 }, { freq: 659, duration: 0.09 }, { freq: 784, duration: 0.09 }, { freq: 1047, duration: 0.09 }, { freq: 1319, duration: 0.22 }] },
     },
   },
 
