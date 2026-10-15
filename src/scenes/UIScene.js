@@ -193,6 +193,7 @@ export default class UIScene extends Phaser.Scene {
           this.flashButton(bg);
           this.panelDirty = true;
           this.game.events.emit('sfx', 'upgrade');
+          this.game.events.emit('defender-upgraded', { type: this.activeTab });
         } else {
           this.game.events.emit('sfx', 'uiDenied');
         }

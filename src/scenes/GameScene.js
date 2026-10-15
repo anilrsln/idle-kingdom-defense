@@ -45,6 +45,11 @@ export default class GameScene extends Phaser.Scene {
     this.game.events.on('dev-jump-wave', this.onDevJumpWave, this);
     this.events.once('shutdown', () => this.game.events.off('dev-jump-wave', this.onDevJumpWave, this));
 
+    // Upgrade alınınca ilgili savunucu(lar) kısa bir pulse yapsın
+    this.game.events.off('defender-upgraded', this.onDefenderUpgraded, this);
+    this.game.events.on('defender-upgraded', this.onDefenderUpgraded, this);
+    this.events.once('shutdown', () => this.game.events.off('defender-upgraded', this.onDefenderUpgraded, this));
+
     // UIScene'i başlat
     this.scene.launch('UIScene');
 
@@ -238,6 +243,10 @@ export default class GameScene extends Phaser.Scene {
     }
     // Ölüm parçacık efekti
     this.spawnDeathParticles(data.x, data.y, data.killedBy);
+    // Elite ölümünde kamera sarsıntısı
+    if (data.type === 'elite' && CONFIG.FX?.screenShake) {
+      this.cameras.main.shake(180, 0.008);
+    }
   }
 
   /** Basit ölüm parçacık efekti. */
@@ -273,6 +282,21 @@ export default class GameScene extends Phaser.Scene {
     );
   }
 
+  /** Upgrade geri bildirimi: ilgili savunucu sprite'larını kısa pulse ile büyüt. */
+  onDefenderUpgraded(data) {
+    const type = data && data.type;
+    const list = type === 'laser' ? [this.laserMonument]
+      : type === 'archer' ? this.archers
+      : type === 'cannon' ? this.cannons : [];
+    for (const d of list) {
+      if (!d || !d.sprite) continue;
+      this.tweens.add({
+        targets: d.sprite, scaleX: 1.35, scaleY: 1.35,
+        duration: 110, yoyo: true, ease: 'Quad.easeOut',
+      });
+    }
+  }
+
   /** Dev panel: belirli bir wave'e atla. */
   onDevJumpWave(n) {
     const wave = Math.max(1, Math.floor(n) || 1);
@@ -289,8 +313,11 @@ export default class GameScene extends Phaser.Scene {
       fontSize: `${size}px`, fontFamily: 'monospace',
       color: `#${color.toString(16).padStart(6, '0')}`,
       stroke: '#000', strokeThickness: 2,
-    }).setOrigin(0.5).setDepth(50).setAlpha(1);
+    }).setOrigin(0.5).setDepth(50).setAlpha(1).setScale(0.4);
 
+    // Pop: hızlı yaylanarak büyü
+    this.tweens.add({ targets: t, scaleX: 1, scaleY: 1, duration: 160, ease: 'Back.easeOut' });
+    // Yüksel + solup kaybol
     this.tweens.add({
       targets: t, y: y - 30, alpha: 0, duration,
       ease: 'Power1',

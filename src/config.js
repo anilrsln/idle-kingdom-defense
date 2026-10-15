@@ -34,6 +34,12 @@ export const CONFIG = {
     jumpWaveTarget: 10, // "wave'e atla" hedefi
   },
 
+  // Görsel efekt (juice) anahtarları
+  FX: {
+    screenShake: true,  // cannon patlaması / elite ölümünde kamera sarsıntısı
+    hitFlash: true,     // mermi isabetinde düşman beyaz flash
+  },
+
   // Renk paleti
   COLORS: {
     WALL: 0x4a4a6a, WALL_TOP: 0x5a5a7a,

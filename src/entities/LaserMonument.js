@@ -61,7 +61,7 @@ export default class LaserMonument extends Defender {
     if (this.damageAccumulator >= 1) {
       const dmg = Math.floor(this.damageAccumulator);
       this.damageAccumulator -= dmg;
-      this.target.takeDamage(dmg);
+      this.target.takeDamage(dmg, false); // lazer flash yok (sürekli hasar)
     }
   }
 

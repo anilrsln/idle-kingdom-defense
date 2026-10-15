@@ -34,12 +34,24 @@ export default class Enemy {
     if (this.sprite.x <= CONFIG.LAVA_X + 20) this.dieToLava();
   }
 
-  takeDamage(amount) {
+  takeDamage(amount, flash = true) {
     if (!this.alive || this.dying) return false;
     this.currentHP -= amount;
     this.updateHPBar();
     if (this.currentHP <= 0) { this.currentHP = 0; this.dieToDefender(); return true; }
+    if (flash) this._flash();
     return false;
+  }
+
+  /** Kısa beyaz isabet flash'ı (mermiler için; lazer sürekli olduğundan çağırmaz). */
+  _flash() {
+    if (!this.sprite || this._flashing || !CONFIG.FX?.hitFlash) return;
+    this._flashing = true;
+    this.sprite.setTintFill(0xffffff);
+    this.scene.time.delayedCall(55, () => {
+      if (this.sprite) this.sprite.clearTint();
+      this._flashing = false;
+    });
   }
 
   dieToDefender() {

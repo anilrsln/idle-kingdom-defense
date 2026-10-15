@@ -101,6 +101,7 @@ export default class Projectile {
 
   explosionEffect() {
     const cx = this.sprite.x, cy = this.sprite.y;
+    if (CONFIG.FX?.screenShake) this.scene.cameras.main.shake(90, 0.005);
     // Dış halka
     const ring = this.scene.add.circle(cx, cy, 5, CONFIG.COLORS.CANNON, 0.6).setDepth(20);
     this.scene.tweens.add({
