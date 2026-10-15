@@ -28,6 +28,15 @@ const SaveManager = {
     }
   },
 
+  /** Kayıtlı oyun var mı? */
+  hasSave() {
+    try {
+      return !!localStorage.getItem(SAVE_KEY);
+    } catch (e) {
+      return false;
+    }
+  },
+
   /** localStorage'dan yükle. Yoksa null döner. */
   load() {
     try {

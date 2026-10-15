@@ -2,6 +2,7 @@ import { CONFIG } from '../config.js';
 import GameState from '../state/GameState.js';
 import WaveManager from '../systems/WaveManager.js';
 import IdleManager from '../systems/IdleManager.js';
+import SaveManager from '../systems/SaveManager.js';
 import LaserMonument from '../entities/LaserMonument.js';
 import Archer from '../entities/Archer.js';
 import Cannon from '../entities/Cannon.js';
@@ -15,6 +16,10 @@ export default class GameScene extends Phaser.Scene {
   constructor() { super({ key: 'GameScene' }); }
 
   create() {
+    // Oyun gerçekten başladı — otomatik kaydı burada başlat
+    // (menüdeyken kaydın bozulmaması için Boot'tan buraya taşındı)
+    SaveManager.startAutoSave();
+
     this.drawBackground();
     this.drawWall();
     this.drawLava();

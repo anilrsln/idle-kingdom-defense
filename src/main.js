@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import BootScene from './scenes/BootScene.js';
+import MenuScene from './scenes/MenuScene.js';
 import GameScene from './scenes/GameScene.js';
 import UIScene from './scenes/UIScene.js';
 import ConquestScene from './scenes/ConquestScene.js';
@@ -19,7 +20,7 @@ const config = {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  scene: [BootScene, GameScene, UIScene, ConquestScene],
+  scene: [BootScene, GameScene, UIScene, ConquestScene, MenuScene],
   physics: { default: 'arcade', arcade: { debug: false } },
   render: { pixelArt: false, antialias: true },
 };

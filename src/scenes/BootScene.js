@@ -1,31 +1,17 @@
 import { CONFIG } from '../config.js';
-import SaveManager from '../systems/SaveManager.js';
-import IdleManager from '../systems/IdleManager.js';
 
-/** BootScene — Placeholder texture üretimi, save yükleme, idle hesaplama. */
+/**
+ * BootScene — Placeholder texture üretimi, ardından Ana Menü.
+ * Otomatik load/start YOK: her açılışta/yenilemede MenuScene gelir,
+ * oyuncu Devam Et (kayıtlı) veya Yeni Oyun seçer.
+ */
 export default class BootScene extends Phaser.Scene {
   constructor() { super({ key: 'BootScene' }); }
 
   preload() { this.createPlaceholderTextures(); }
 
   create() {
-    // Save yükle
-    const savedData = SaveManager.load();
-    if (savedData) {
-      SaveManager.applyLoad(savedData);
-
-      // Idle gelir hesapla
-      const earnings = IdleManager.calculateIdleEarnings();
-      if (earnings && (earnings.exp > 0 || earnings.food > 0)) {
-        // Idle kazancı sakla — GameScene'de popup gösterilecek
-        this.registry.set('idleEarnings', earnings);
-      }
-    }
-
-    // Otomatik kayıt başlat
-    SaveManager.startAutoSave();
-
-    this.scene.start('GameScene');
+    this.scene.start('MenuScene', { mode: 'start' });
   }
 
   createPlaceholderTextures() {

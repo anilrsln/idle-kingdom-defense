@@ -3,7 +3,6 @@ import GameState from '../state/GameState.js';
 import { formatNumber } from '../utils/NumberFormatter.js';
 import UpgradeManager from '../systems/UpgradeManager.js';
 import PrestigeManager from '../systems/PrestigeManager.js';
-import SoundManager from '../systems/SoundManager.js';
 
 /**
  * UIScene — HUD overlay + alt yükseltme paneli.
@@ -42,17 +41,14 @@ export default class UIScene extends Phaser.Scene {
     this.prestigeBtn.on('pointerover', () => this.prestigeBtn.setFillStyle(0xb07cc8));
     this.prestigeBtn.on('pointerout', () => this.prestigeBtn.setFillStyle(0x9b59b6));
 
-    // Ses kontrol butonu (üst bar sağ köşe) — kapalı→düşük→orta→yüksek döngüsü
-    this.soundLevels = [0, 0.25, 0.5, 0.85];
-    this.soundIcons = ['🔇', '🔈', '🔉', '🔊'];
-    this.soundIndex = this.resolveSoundIndex();
-    this.soundBtn = this.add.rectangle(786, 15, 22, 22, CONFIG.COLORS.UI_BUTTON, 1)
+    // Menü/Ayarlar butonu (üst bar sağ köşe) — oyunu duraklatıp menüyü açar
+    this.menuBtn = this.add.rectangle(786, 15, 24, 22, CONFIG.COLORS.UI_BUTTON, 1)
       .setDepth(102).setInteractive({ useHandCursor: true });
-    this.soundBtnLabel = this.add.text(786, 15, this.soundIcons[this.soundIndex], this.textStyle(13, '#ffffff'))
+    this.menuBtnLabel = this.add.text(786, 15, '⚙', this.textStyle(15, '#ffffff'))
       .setOrigin(0.5).setDepth(103);
-    this.soundBtn.on('pointerdown', () => this.cycleSound());
-    this.soundBtn.on('pointerover', () => this.soundBtn.setFillStyle(CONFIG.COLORS.UI_BUTTON_HOVER));
-    this.soundBtn.on('pointerout', () => this.soundBtn.setFillStyle(CONFIG.COLORS.UI_BUTTON));
+    this.menuBtn.on('pointerdown', () => this.openMenu());
+    this.menuBtn.on('pointerover', () => this.menuBtn.setFillStyle(CONFIG.COLORS.UI_BUTTON_HOVER));
+    this.menuBtn.on('pointerout', () => this.menuBtn.setFillStyle(CONFIG.COLORS.UI_BUTTON));
 
     // Prestige dialog elementleri
     this.prestigeDialog = null;
@@ -323,30 +319,14 @@ export default class UIScene extends Phaser.Scene {
     }
   }
 
-  // ═══════ SES KONTROLÜ ═══════
-  /** Kayıtlı ses ayarından başlangıç döngü indeksini bulur. */
-  resolveSoundIndex() {
-    if (!GameState.settings.soundEnabled) return 0;
-    const vol = GameState.settings.masterVolume;
-    // En yakın seviye (indeks 0 = kapalı hariç)
-    let best = 2, bestDiff = Infinity;
-    for (let i = 1; i < this.soundLevels.length; i++) {
-      const diff = Math.abs(this.soundLevels[i] - vol);
-      if (diff < bestDiff) { bestDiff = diff; best = i; }
-    }
-    return best;
-  }
-
-  /** Ses seviyesini bir sonraki duruma geçirir. */
-  cycleSound() {
-    this.soundIndex = (this.soundIndex + 1) % this.soundLevels.length;
-    const vol = this.soundLevels[this.soundIndex];
-    const enabled = vol > 0;
-    SoundManager.setEnabled(enabled);
-    if (enabled) SoundManager.setVolume(vol);
-    this.soundBtnLabel.setText(this.soundIcons[this.soundIndex]);
-    // Yeni seviyeyi duyurmak için kısa bir onay sesi
-    if (enabled) this.game.events.emit('sfx', 'mapOpen');
+  // ═══════ MENÜ / AYARLAR ═══════
+  /** Oyunu duraklatıp Ayarlar/Pause menüsünü açar. */
+  openMenu() {
+    if (this.scene.isActive('MenuScene')) return;
+    this.game.events.emit('sfx', 'mapOpen');
+    this.scene.pause('GameScene');
+    this.scene.launch('MenuScene', { mode: 'pause' });
+    this.scene.pause(); // UIScene'i de duraklat — arka plan tıklamalarını engeller
   }
 
   // ═══════ HUD GÜNCELLEMESİ ═══════
