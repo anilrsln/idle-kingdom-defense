@@ -100,17 +100,23 @@ export default class GameScene extends Phaser.Scene {
 
   // ═══════════════ Çizim ═══════════════
   drawBackground() {
-    this.add.rectangle(
-      CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2,
-      CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT, CONFIG.COLORS.SKY
-    ).setDepth(0);
+    const W = CONFIG.CANVAS_WIDTH, H = CONFIG.CANVAS_HEIGHT;
 
-    // Zemin
-    const groundY = CONFIG.CANVAS_HEIGHT - CONFIG.LAVA_HEIGHT;
-    this.add.rectangle(
-      CONFIG.CANVAS_WIDTH / 2, groundY - 75,
-      CONFIG.CANVAS_WIDTH, 150, CONFIG.COLORS.GROUND
-    ).setDepth(0);
+    // Gökyüzü — hafif dikey degrade (üst koyu → ufka doğru biraz açılır)
+    const sky = this.add.graphics().setDepth(0);
+    sky.fillGradientStyle(
+      CONFIG.COLORS.SKY_TOP, CONFIG.COLORS.SKY_TOP,
+      CONFIG.COLORS.SKY_BOTTOM, CONFIG.COLORS.SKY_BOTTOM, 1
+    );
+    sky.fillRect(0, 0, W, H);
+
+    // Zemin bandı (koridor) — gökyüzüyle aynı aileden, bir tık koyu lacivert
+    const groundTop = H - CONFIG.LAVA_HEIGHT - 150;
+    const groundH = 150;
+    this.add.rectangle(W / 2, groundTop + groundH / 2, W, groundH, CONFIG.COLORS.GROUND).setDepth(0);
+
+    // Ufuk / zemin üst kenarı — ince vurgu çizgisi
+    this.add.rectangle(W / 2, groundTop, W, 2, CONFIG.COLORS.GROUND_EDGE, 0.6).setDepth(0);
   }
 
   drawWall() {
