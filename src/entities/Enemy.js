@@ -22,6 +22,7 @@ export default class Enemy {
     this.isChild = options.child ?? false;
     this.noSplit = options.noSplit ?? false;
     this.splitConfig = config.split || null;
+    this.healConfig = config.heal || null; // yakındaki düşmanları iyileştirir
 
     this.foodReward = config.food * rewardFactor;
     this.maxHP = Math.max(1, Math.floor(calculateEnemyHP(config.hp, CONFIG.WAVES.hpScaling, waveNumber) * hpFactor));
@@ -45,11 +46,52 @@ export default class Enemy {
     this.hpBar = scene.add.graphics().setDepth(11);
   }
 
-  update(delta) {
+  update(delta, enemies) {
     if (!this.alive || this.dying) return;
     this.sprite.x -= this.speed * delta;
     this.updateHPBar();
+    if (this.healConfig && enemies) this._updateHeal(delta, enemies);
     if (this.sprite.x <= CONFIG.LAVA_X + 20) this.dieToLava();
+  }
+
+  /** Healer: periyodik olarak menzildeki (kendisi hariç) düşmanların HP'sini yeniler. */
+  _updateHeal(delta, enemies) {
+    this._healTimer = (this._healTimer ?? this.healConfig.interval) - delta;
+    if (this._healTimer > 0) return;
+    this._healTimer = this.healConfig.interval;
+
+    const r2 = this.healConfig.radius * this.healConfig.radius;
+    let healedAny = false;
+    for (const e of enemies) {
+      if (e === this || !e.alive || e.dying || !e.sprite) continue;
+      if (e.currentHP >= e.maxHP) continue;
+      const dx = e.sprite.x - this.sprite.x;
+      const dy = e.sprite.y - this.sprite.y;
+      if (dx * dx + dy * dy > r2) continue;
+      const amt = Math.max(1, Math.floor(e.maxHP * this.healConfig.fraction));
+      e.currentHP = Math.min(e.maxHP, e.currentHP + amt);
+      e.updateHPBar();
+      e._healFlash();
+      healedAny = true;
+    }
+    if (healedAny) this._healPulse();
+  }
+
+  /** İyileşen hedefte kısa yeşil flash. */
+  _healFlash() {
+    if (!this.sprite || this._flashing) return;
+    this.sprite.setTintFill(0x44ff88);
+    this.scene.time.delayedCall(80, () => { if (this.sprite) this.sprite.clearTint(); });
+  }
+
+  /** Healer'dan yayılan yeşil aura halkası. */
+  _healPulse() {
+    if (!this.sprite) return;
+    const ring = this.scene.add.circle(this.sprite.x, this.sprite.y, this.healConfig.radius * 0.4, 0x44ff88, 0.18).setDepth(9);
+    this.scene.tweens.add({
+      targets: ring, scaleX: 2.2, scaleY: 2.2, alpha: 0, duration: 420, ease: 'Power2',
+      onComplete: () => ring.destroy(),
+    });
   }
 
   takeDamage(amount, flash = true) {

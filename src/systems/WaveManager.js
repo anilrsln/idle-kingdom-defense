@@ -36,7 +36,7 @@ export default class WaveManager {
 
   selectEnemyType() {
     const available = this.getAvailableEnemyTypes();
-    const weights = { skeleton: 40, armored: 20, fast: 20, foodCarrier: 15, elite: 5, shield: 10, splitter: 10 };
+    const weights = { skeleton: 40, armored: 20, fast: 20, foodCarrier: 15, elite: 5, shield: 10, splitter: 10, healer: 8 };
     let total = 0;
     const list = available.map(type => {
       const w = weights[type] || 10;
@@ -107,7 +107,7 @@ export default class WaveManager {
   updateEnemies(delta) {
     for (let i = this.enemies.length - 1; i >= 0; i--) {
       const e = this.enemies[i];
-      e.update(delta);
+      e.update(delta, this.enemies);
       if (!e.alive && !e.dying) this.enemies.splice(i, 1);
     }
   }

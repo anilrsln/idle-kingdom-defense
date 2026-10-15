@@ -103,6 +103,7 @@ export const CONFIG = {
     'enemy-elite':       { shape: 'circle', size: 12, color: 0xffaa00 },
     'enemy-shield':      { shape: 'rect',   width: 18, height: 18, color: 0x6688cc }, // kare silüet = kalkanlı
     'enemy-splitter':    { shape: 'circle', size: 11, color: 0xcc66ff }, // mor blob = bölünen
+    'enemy-healer':      { shape: 'triangle', size: 15, color: 0x33cc99 }, // yeşil üçgen = şifacı
     // Savunucular
     'defender-laser':    { shape: 'rect', width: 24, height: 32, color: 0x00ffff },
     'defender-archer':   { shape: 'triangle', size: 16, color: 0x7cfc00 },
@@ -124,6 +125,9 @@ export const CONFIG = {
     // Splitter: savunucu ile ölünce 'split.count' küçük çocuğa bölünür (çocuklar bölünmez)
     splitter:    { name: 'Splitter',         hp: 24,  speed: 26, exp: 5,  food: 0, color: 0xcc66ff,
                    split: { count: 2, hpFactor: 0.4, rewardFactor: 0.35, scale: 0.6 } },
+    // Healer: her 'interval' sn'de menzildeki (kendisi hariç) düşmanları maxHP'nin fraction'ı kadar iyileştirir
+    healer:      { name: 'Healer',           hp: 28,  speed: 24, exp: 7,  food: 1, color: 0x33cc99,
+                   heal: { fraction: 0.12, radius: 90, interval: 1.2 } },
   },
 
   // Dalga sistemi
@@ -134,7 +138,7 @@ export const CONFIG = {
     timeBetweenWaves: 2000,
     hpScaling: 1.08,
     expScaling: 1.05,
-    typeUnlocks: { skeleton: 1, armored: 5, fast: 8, foodCarrier: 3, elite: 15, shield: 10, splitter: 12 },
+    typeUnlocks: { skeleton: 1, armored: 5, fast: 8, foodCarrier: 3, elite: 15, shield: 10, splitter: 12, healer: 14 },
   },
 
   // Prestige
