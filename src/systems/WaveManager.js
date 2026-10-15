@@ -54,13 +54,23 @@ export default class WaveManager {
     return available[0];
   }
 
+  /** Boss rotasyonuna göre bu wave'deki boss tipini döndürür. */
+  getBossType(wave) {
+    const rotation = CONFIG.BOSS_ROTATION;
+    if (!rotation || rotation.length === 0) return 'boss_tank';
+    const every = CONFIG.WAVES.bossEvery || 10;
+    const idx = Math.floor(wave / every) - 1; // wave=10→0, wave=20→1, ...
+    return rotation[idx % rotation.length];
+  }
+
   spawnEnemy() {
     // Boss dalgası: orta şeritte tek büyük boss, girişinde duyuru
     if (this.isBossWave()) {
-      const boss = new Enemy(this.scene, 'boss', GameState.wave.current, this.lanes[1], { boss: true });
+      const bossType = this.getBossType(GameState.wave.current);
+      const boss = new Enemy(this.scene, bossType, GameState.wave.current, this.lanes[1], { boss: true });
       this.enemies.push(boss);
       GameState.wave.enemiesSpawned++;
-      this.scene.events.emit('boss-wave', { wave: GameState.wave.current });
+      this.scene.events.emit('boss-wave', { wave: GameState.wave.current, bossType });
       return;
     }
     const type = this.selectEnemyType();

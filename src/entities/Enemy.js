@@ -60,11 +60,26 @@ export default class Enemy {
     if (this.sprite.x <= CONFIG.LAVA_X + 20) this.dieToLava();
   }
 
-  /** Healer: periyodik olarak menzildeki (kendisi hariç) düşmanların HP'sini yeniler. */
+  /** Healer: periyodik olarak menzildeki (kendisi hariç) düşmanların HP'sini yeniler.
+   *  radius === 0 ise yalnızca kendini iyileştirir (boss_shaman self-heal). */
   _updateHeal(delta, enemies) {
     this._healTimer = (this._healTimer ?? this.healConfig.interval) - delta;
     if (this._healTimer > 0) return;
     this._healTimer = this.healConfig.interval;
+
+    const selfOnly = this.healConfig.radius === 0;
+
+    if (selfOnly) {
+      // Self-heal: sadece kendi HP'sini yenile
+      if (this.currentHP < this.maxHP) {
+        const amt = Math.max(1, Math.floor(this.maxHP * this.healConfig.fraction));
+        this.currentHP = Math.min(this.maxHP, this.currentHP + amt);
+        this.updateHPBar();
+        this._healFlash();
+        this._healPulse();
+      }
+      return;
+    }
 
     const r2 = this.healConfig.radius * this.healConfig.radius;
     let healedAny = false;

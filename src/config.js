@@ -134,7 +134,9 @@ export const CONFIG = {
     'enemy-shield':      { shape: 'rect',   width: 18, height: 18, color: 0x6688cc }, // kare silüet = kalkanlı
     'enemy-splitter':    { shape: 'circle', size: 11, color: 0xcc66ff }, // mor blob = bölünen
     'enemy-healer':      { shape: 'triangle', size: 15, color: 0x33cc99 }, // yeşil üçgen = şifacı
-    'enemy-boss':        { shape: 'circle', size: 24, color: 0xcc3333 },   // büyük kırmızı daire = boss
+    'enemy-boss_tank':      { shape: 'rect',     width: 44, height: 44, color: 0xcc3333 }, // kırmızı kare = tank
+    'enemy-boss_berserker': { shape: 'triangle', size: 28,             color: 0xff6600 }, // turuncu üçgen = berserker
+    'enemy-boss_shaman':    { shape: 'circle',   size: 26,             color: 0xaa44ff }, // mor daire = şaman
     // Savunucular
     'defender-laser':    { shape: 'rect', width: 24, height: 32, color: 0x00ffff },
     'defender-archer':   { shape: 'triangle', size: 16, color: 0x7cfc00 },
@@ -159,9 +161,19 @@ export const CONFIG = {
     // Healer: her 'interval' sn'de menzildeki (kendisi hariç) düşmanları maxHP'nin fraction'ı kadar iyileştirir
     healer:      { name: 'Healer',           hp: 28,  speed: 24, exp: 7,  food: 1, color: 0x33cc99,
                    heal: { fraction: 0.12, radius: 90, interval: 1.2 } },
-    // Boss: her bossEvery wave'de tek, çok yüksek HP, yavaş, büyük ödül (random havuzda değil)
-    boss:        { name: 'Boss',             hp: 800, speed: 14, exp: 120, food: 20, color: 0xcc3333 },
+    // ── Boss tipleri ── her bossEvery wave'de tek spawn; rotasyon WaveManager'da
+    // boss_tank: zırhlı, çok yüksek HP + kalkan — yavaş ama dayanıklı
+    boss_tank:    { name: 'Tank Boss',    hp: 1000, speed: 12, exp: 140, food: 25, color: 0xcc3333,
+                    shield: 300 },
+    // boss_berserker: hızlı saldırıcı — düşük HP ama çok hızlı, ödülü yüksek
+    boss_berserker: { name: 'Berserker Boss', hp: 500, speed: 32, exp: 160, food: 18, color: 0xff6600 },
+    // boss_shaman: kendini iyileştiren — orta HP + heal özelliği, bitirmek zor
+    boss_shaman:  { name: 'Shaman Boss',  hp: 700, speed: 16, exp: 150, food: 22, color: 0xaa44ff,
+                    heal: { fraction: 0.05, radius: 0, interval: 2.5 } }, // radius:0 → sadece kendini iyileştirir
   },
+
+  // Boss rotasyon sırası — bossEvery'nin katlarında bu sırayla döner
+  BOSS_ROTATION: ['boss_tank', 'boss_berserker', 'boss_shaman'],
 
   // Dalga sistemi
   WAVES: {

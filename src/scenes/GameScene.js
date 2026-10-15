@@ -305,7 +305,8 @@ export default class GameScene extends Phaser.Scene {
 
   /** Boss dalgası girişinde duyuru. */
   onBossWave(data) {
-    this.showFloatingText(`⚠ BOSS — Wave ${data.wave}`, CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2 - 50, 0xff4444, 26, 1800);
+    const bossName = data.bossType ? (CONFIG.ENEMIES[data.bossType]?.name || 'BOSS') : 'BOSS';
+    this.showFloatingText(`⚠ ${bossName} — Wave ${data.wave}`, CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2 - 50, 0xff4444, 24, 2000);
     this.game.events.emit('sfx', 'prestige');
   }
 
