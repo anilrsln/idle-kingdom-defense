@@ -19,6 +19,13 @@ export default class Enemy {
     this.currentHP = this.maxHP;
     this.expReward = calculateEnemyEXP(config.exp, CONFIG.WAVES.expScaling, waveNumber);
 
+    // Davranış: kalkan (opsiyonel). config.shield varsa ilk darbeleri emer;
+    // HP ile aynı eğride ölçeklenir. (Veri-güdümlü davranış deseni — yeni
+    // davranışlar config alanı + burada kısa bir kontrol olarak eklenir.)
+    this.maxShield = config.shield ? calculateEnemyHP(config.shield, CONFIG.WAVES.hpScaling, waveNumber) : 0;
+    this.currentShield = this.maxShield;
+    this._shieldBroken = false;
+
     this.sprite = scene.add.image(CONFIG.SPAWN_X, laneY, `enemy-${type}`).setDepth(10).setAlpha(0);
     scene.tweens.add({ targets: this.sprite, alpha: 1, duration: 200 });
 
@@ -36,11 +43,28 @@ export default class Enemy {
 
   takeDamage(amount, flash = true) {
     if (!this.alive || this.dying) return false;
-    this.currentHP -= amount;
+    // Kalkan varsa önce onu emer, kalan hasar HP'ye geçer
+    if (this.currentShield > 0) {
+      const absorbed = Math.min(this.currentShield, amount);
+      this.currentShield -= absorbed;
+      amount -= absorbed;
+      if (this.currentShield <= 0 && !this._shieldBroken) {
+        this._shieldBroken = true;
+        this._onShieldBreak();
+      }
+    }
+    if (amount > 0) this.currentHP -= amount;
     this.updateHPBar();
     if (this.currentHP <= 0) { this.currentHP = 0; this.dieToDefender(); return true; }
     if (flash) this._flash();
     return false;
+  }
+
+  /** Kalkan kırıldığında kısa cyan flash. */
+  _onShieldBreak() {
+    if (!this.sprite) return;
+    this.sprite.setTintFill(0x66ccff);
+    this.scene.time.delayedCall(90, () => { if (this.sprite) this.sprite.clearTint(); });
   }
 
   /** Kısa beyaz isabet flash'ı (mermiler için; lazer sürekli olduğundan çağırmaz). */
@@ -105,9 +129,24 @@ export default class Enemy {
 
   updateHPBar() {
     this.hpBar.clear();
-    if (!this.alive || this.currentHP >= this.maxHP) return;
+    if (!this.alive || !this.sprite) return;
+    const hasShield = this.maxShield > 0 && this.currentShield > 0;
+    // Tam can ve kalkan yoksa barı gizle
+    if (!hasShield && this.currentHP >= this.maxHP) return;
+
     const bx = this.sprite.x - this.hpBarWidth / 2;
-    const by = this.sprite.y - 14;
+    let by = this.sprite.y - 14;
+
+    // Kalkan barı (üstte, cyan)
+    if (hasShield) {
+      this.hpBar.fillStyle(CONFIG.COLORS.HP_BAR_BG, 0.8);
+      this.hpBar.fillRect(bx, by, this.hpBarWidth, this.hpBarHeight);
+      this.hpBar.fillStyle(0x66ccff, 1);
+      this.hpBar.fillRect(bx, by, this.hpBarWidth * (this.currentShield / this.maxShield), this.hpBarHeight);
+      by += this.hpBarHeight + 1;
+    }
+
+    // HP barı
     this.hpBar.fillStyle(CONFIG.COLORS.HP_BAR_BG, 0.8);
     this.hpBar.fillRect(bx, by, this.hpBarWidth, this.hpBarHeight);
     const ratio = Math.max(0, this.currentHP / this.maxHP);

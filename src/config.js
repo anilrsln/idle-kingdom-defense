@@ -101,6 +101,7 @@ export const CONFIG = {
     'enemy-fast':        { shape: 'circle', size: 7,  color: 0xff6666 },
     'enemy-foodCarrier': { shape: 'circle', size: 9,  color: 0x66ff66 },
     'enemy-elite':       { shape: 'circle', size: 12, color: 0xffaa00 },
+    'enemy-shield':      { shape: 'rect',   width: 18, height: 18, color: 0x6688cc }, // kare silüet = kalkanlı
     // Savunucular
     'defender-laser':    { shape: 'rect', width: 24, height: 32, color: 0x00ffff },
     'defender-archer':   { shape: 'triangle', size: 16, color: 0x7cfc00 },
@@ -117,6 +118,8 @@ export const CONFIG = {
     fast:        { name: 'Fast Runner',      hp: 8,   speed: 50, exp: 3,  food: 0, color: 0xff6666 },
     foodCarrier: { name: 'Food Carrier',     hp: 20,  speed: 30, exp: 2,  food: 3, color: 0x66ff66 },
     elite:       { name: 'Elite',            hp: 100, speed: 25, exp: 15, food: 5, color: 0xffaa00 },
+    // Kalkanlı: orta HP ama kalkan ilk darbeleri emer (shield, HP eğrisinde ölçeklenir)
+    shield:      { name: 'Shield Bearer',    hp: 30,  speed: 22, exp: 6,  food: 1, color: 0x6688cc, shield: 40 },
   },
 
   // Dalga sistemi
@@ -127,7 +130,7 @@ export const CONFIG = {
     timeBetweenWaves: 2000,
     hpScaling: 1.08,
     expScaling: 1.05,
-    typeUnlocks: { skeleton: 1, armored: 5, fast: 8, foodCarrier: 3, elite: 15 },
+    typeUnlocks: { skeleton: 1, armored: 5, fast: 8, foodCarrier: 3, elite: 15, shield: 10 },
   },
 
   // Prestige

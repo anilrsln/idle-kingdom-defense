@@ -36,7 +36,7 @@ export default class WaveManager {
 
   selectEnemyType() {
     const available = this.getAvailableEnemyTypes();
-    const weights = { skeleton: 40, armored: 20, fast: 20, foodCarrier: 15, elite: 5 };
+    const weights = { skeleton: 40, armored: 20, fast: 20, foodCarrier: 15, elite: 5, shield: 10 };
     let total = 0;
     const list = available.map(type => {
       const w = weights[type] || 10;
