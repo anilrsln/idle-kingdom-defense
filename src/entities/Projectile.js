@@ -6,13 +6,14 @@ import { distance } from '../utils/MathUtils.js';
  * Hedefe doğru hareket, çarpma tespiti, AoE patlama efekti.
  */
 export default class Projectile {
-  constructor(scene, x, y, target, type, damage, blastRadius = 0, isCrit = false) {
+  constructor(scene, x, y, target, type, damage, blastRadius = 0, isCrit = false, onHit = null) {
     this.scene = scene;
     this.target = target;
-    this.type = type; // 'arrow' | 'cannonball'
+    this.type = type; // 'arrow' | 'cannonball' | 'frostbolt' | 'boulder'
     this.damage = damage;
     this.blastRadius = blastRadius;
     this.isCrit = isCrit;
+    this.onHit = onHit; // opsiyonel callback(hitEnemy) — tekli isabet sonrası efekt (frost slow gibi)
     this.alive = true;
 
     const pConfig = CONFIG.PROJECTILES[type];
@@ -70,9 +71,10 @@ export default class Projectile {
       this.aoeHit(enemies);
       this.explosionEffect();
     } else {
-      // Tekli hasar — ok
+      // Tekli hasar — ok / frostbolt
       if (this.target && this.target.alive && !this.target.dying) {
         this.target.takeDamage(this.damage, true, this.isCrit);
+        if (this.onHit) this.onHit(this.target);
       }
       this.hitEffect();
     }
@@ -93,9 +95,10 @@ export default class Projectile {
   }
 
   hitEffect() {
-    const spark = this.scene.add.circle(this.sprite.x, this.sprite.y, 4, 0xffffff).setDepth(20).setAlpha(0.8);
+    const color = this.type === 'frostbolt' ? 0x88ccff : 0xffffff;
+    const spark = this.scene.add.circle(this.sprite.x, this.sprite.y, 4, color).setDepth(20).setAlpha(0.8);
     this.scene.tweens.add({
-      targets: spark, alpha: 0, scaleX: 2, scaleY: 2, duration: 150,
+      targets: spark, alpha: 0, scaleX: 2, scaleY: 2, duration: this.type === 'frostbolt' ? 250 : 150,
       onComplete: () => spark.destroy(),
     });
   }

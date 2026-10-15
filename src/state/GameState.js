@@ -20,6 +20,14 @@ const GameState = {
       unlocked: false, canBeHired: false, count: 0, maxCount: 3,
       damage: { level: 1 }, blastRadius: { level: 1 }, reloadSpeed: { level: 1 },
     },
+    frost: {
+      unlocked: false, canBeHired: false, count: 0, maxCount: 3,
+      damage: { level: 1 }, fireRate: { level: 1 }, range: { level: 1 },
+    },
+    catapult: {
+      unlocked: false, canBeHired: false, count: 0, maxCount: 2,
+      damage: { level: 1 }, blastRadius: { level: 1 }, reloadSpeed: { level: 1 },
+    },
   },
   conquestMap: {
     unlockedNodes: [],
@@ -30,11 +38,7 @@ const GameState = {
     },
   },
   economy: { expBoost: { level: 0 }, foodBoost: { level: 0 } }, // run içi ekonomi upgrade'leri
-  // trophies + perks: prestige'de KORUNUR, Yeni Oyun'da sıfırlanır (kalıcı meta ilerleme)
-  prestige: {
-    unlocked: false, count: 0, multiplier: 1.0, trophies: 0,
-    perks: { exp: { level: 0 }, food: { level: 0 }, damage: { level: 0 }, start: { level: 0 }, mult: { level: 0 } },
-  },
+  prestige: { unlocked: false, count: 0, multiplier: 1.0 },
   settings: { soundEnabled: true, masterVolume: 0.5 },
   stats: {
     totalEnemiesKilled: 0, totalExpEarned: 0,
@@ -56,13 +60,12 @@ export function resetAll(state) {
     laser: { damage: { level: 1 }, fireRate: { level: 1 }, range: { level: 1 } },
     archer: { unlocked: false, count: 0, maxCount: 5, damage: { level: 1 }, fireRate: { level: 1 }, range: { level: 1 } },
     cannon: { unlocked: false, canBeHired: false, count: 0, maxCount: 3, damage: { level: 1 }, blastRadius: { level: 1 }, reloadSpeed: { level: 1 } },
+    frost: { unlocked: false, canBeHired: false, count: 0, maxCount: 3, damage: { level: 1 }, fireRate: { level: 1 }, range: { level: 1 } },
+    catapult: { unlocked: false, canBeHired: false, count: 0, maxCount: 2, damage: { level: 1 }, blastRadius: { level: 1 }, reloadSpeed: { level: 1 } },
   };
   state.conquestMap = { unlockedNodes: [], bonuses: {} };
   state.economy = { expBoost: { level: 0 }, foodBoost: { level: 0 } };
-  state.prestige = {
-    unlocked: false, count: 0, multiplier: 1.0, trophies: 0,
-    perks: { exp: { level: 0 }, food: { level: 0 }, damage: { level: 0 }, start: { level: 0 }, mult: { level: 0 } },
-  };
+  state.prestige = { unlocked: false, count: 0, multiplier: 1.0 };
   state.stats = { totalEnemiesKilled: 0, totalExpEarned: 0, totalFoodEarned: 0, totalWavesCompleted: 0, bossesKilled: 0 };
   state.achievements = { unlocked: [] };
   state.meta = { ...state.meta, lastSaveTime: Date.now(), totalPlayTime: 0, expRate: 0, foodRate: 0 };
@@ -76,6 +79,8 @@ export function resetForPrestige(state) {
   state.defenders.laser = { damage: { level: 1 }, fireRate: { level: 1 }, range: { level: 1 } };
   state.defenders.archer = { unlocked: false, count: 0, maxCount: 5, damage: { level: 1 }, fireRate: { level: 1 }, range: { level: 1 } };
   state.defenders.cannon = { unlocked: false, canBeHired: false, count: 0, maxCount: 3, damage: { level: 1 }, blastRadius: { level: 1 }, reloadSpeed: { level: 1 } };
+  state.defenders.frost = { unlocked: false, canBeHired: false, count: 0, maxCount: 3, damage: { level: 1 }, fireRate: { level: 1 }, range: { level: 1 } };
+  state.defenders.catapult = { unlocked: false, canBeHired: false, count: 0, maxCount: 2, damage: { level: 1 }, blastRadius: { level: 1 }, reloadSpeed: { level: 1 } };
   state.conquestMap.unlockedNodes = [];
   state.economy = { expBoost: { level: 0 }, foodBoost: { level: 0 } };
   state.meta.expRate = 0; // prestige sonrası düşük DPS'e göre yeniden ölçülür

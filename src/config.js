@@ -109,12 +109,35 @@ export const CONFIG = {
       blastRadius: { base: 40, multiplier: 1.1,  baseCost: 35 },
       reloadSpeed: { base: 0.3, multiplier: 1.1, baseCost: 25 },
     },
+    frost: {
+      name: 'Frost Tower',
+      hireCost: 300,
+      hireCostMultiplier: 1.8,
+      // Hasar düşük; asıl değer yavaşlatma
+      damage:       { base: 2,   multiplier: 1.15, baseCost: 20 },
+      fireRate:     { base: 0.6, multiplier: 1.1,  baseCost: 22 },
+      range:        { base: 130, multiplier: 1.08, baseCost: 28 },
+      // Yavaşlatma: hedef hızını slowFraction'a düşürür, slowDuration sn sonra normale döner
+      slowFraction: 0.45, // hedef hızının %45'ine iner
+      slowDuration: 2.5,  // saniye
+    },
+    catapult: {
+      name: 'Catapult',
+      hireCost: 500,
+      hireCostMultiplier: 2.5,
+      damage:      { base: 35, multiplier: 1.3,  baseCost: 50 },
+      blastRadius: { base: 70, multiplier: 1.12, baseCost: 45 },
+      reloadSpeed: { base: 0.18, multiplier: 1.1, baseCost: 35 }, // çok yavaş ateş
+      range:       { base: 999, multiplier: 1.0,  baseCost: 0  }, // tam saha menzili
+    },
   },
 
   // Mermi hızları
   PROJECTILES: {
     arrow:      { speed: 350, size: 3 },
     cannonball: { speed: 200, size: 5 },
+    frostbolt:  { speed: 280, size: 4 },
+    boulder:    { speed: 150, size: 7 },
   },
 
   // ─────────────────────────────────────────────────────────────
@@ -141,9 +164,13 @@ export const CONFIG = {
     'defender-laser':    { shape: 'rect', width: 24, height: 32, color: 0x00ffff },
     'defender-archer':   { shape: 'triangle', size: 16, color: 0x7cfc00 },
     'defender-cannon':   { shape: 'rect', width: 20, height: 20, color: 0xff8c00 },
+    'defender-frost':    { shape: 'circle', size: 14, color: 0x88ccff },  // açık mavi daire
+    'defender-catapult': { shape: 'rect', width: 26, height: 22, color: 0xaa7744 }, // kahve kare = ahşap mancınık
     // Mermiler
     'projectile-arrow':      { shape: 'circle', size: 3, color: 0x7cfc00 },
     'projectile-cannonball': { shape: 'circle', size: 5, color: 0xff8c00 },
+    'projectile-frostbolt':  { shape: 'circle', size: 4, color: 0x88ccff },
+    'projectile-boulder':    { shape: 'circle', size: 7, color: 0x886655 },
   },
 
   // Düşman değerleri
@@ -201,18 +228,6 @@ export const CONFIG = {
   // Prestige
   PRESTIGE: { multiplierPerPrestige: 0.5 },
 
-  // Prestige Trophy perk'leri — kalıcı (prestige'de korunur, Yeni Oyun'da sıfırlanır).
-  // Trophy, her prestige'de kazanılır (bkz. TROPHY_PER_PRESTIGE) ve bu perk'lere harcanır.
-  // Maliyet = baseCost + level × costStep (Trophy)
-  TROPHY_PER_PRESTIGE: 1, // temel; yüksek wave bonusu PrestigeManager'da eklenir
-  PRESTIGE_PERKS: {
-    exp:     { name: 'EXP Ustalığı',    desc: '+%15 EXP (kalıcı)',        type: 'exp',      bonusPerLevel: 0.15, baseCost: 1, costStep: 1, maxLevel: 20 },
-    food:    { name: 'Erzak Ustalığı',  desc: '+%15 Food (kalıcı)',       type: 'food',     bonusPerLevel: 0.15, baseCost: 1, costStep: 1, maxLevel: 20 },
-    damage:  { name: 'Savaş Ustalığı',  desc: '+%10 tüm hasar (kalıcı)',  type: 'damage',   bonusPerLevel: 0.10, baseCost: 2, costStep: 1, maxLevel: 20 },
-    start:   { name: 'Hazır Başlangıç', desc: 'Prestige sonrası +500 EXP/level', type: 'start', bonusPerLevel: 500, baseCost: 2, costStep: 2, maxLevel: 10 },
-    mult:    { name: 'Prestige Gücü',   desc: 'Prestige çarpanına +0.25/level', type: 'mult', bonusPerLevel: 0.25, baseCost: 3, costStep: 3, maxLevel: 10 },
-  },
-
   // Ses sistemi — prosedürel (Web Audio) SFX reçeteleri.
   // Asset dosyası yok; her efekt runtime'da sentezlenir. İleride sample
   // tabanlıya geçerken bu reçeteler { sample: 'path' } ile değiştirilebilir.
@@ -233,6 +248,8 @@ export const CONFIG = {
       prestige:      { engine: 'sequence', type: 'sawtooth', gain: 0.30, notes: [{ freq: 392, duration: 0.12 }, { freq: 523, duration: 0.12 }, { freq: 659, duration: 0.12 }, { freq: 1047, duration: 0.22 }] },
       uiDenied:      { engine: 'tone',  type: 'square',   freq: 220, freqEnd: 160, duration: 0.10, gain: 0.14, throttleMs: 80 },
       mapOpen:       { engine: 'tone',  type: 'sine',     freq: 440, freqEnd: 660, duration: 0.10, gain: 0.18 },
+      frostFire:     { engine: 'tone',  type: 'sine',     freq: 880, freqEnd: 1200, duration: 0.08, gain: 0.14, throttleMs: 50 },
+      boulderFire:   { engine: 'noise', freq: 200, freqEnd: 40,  duration: 0.45, gain: 0.35, throttleMs: 80 },
       milestone:     { engine: 'sequence', type: 'sine', gain: 0.32, notes: [{ freq: 659, duration: 0.09 }, { freq: 784, duration: 0.09 }, { freq: 1047, duration: 0.18 }] },
       bigMilestone:  { engine: 'sequence', type: 'triangle', gain: 0.36, notes: [{ freq: 523, duration: 0.09 }, { freq: 659, duration: 0.09 }, { freq: 784, duration: 0.09 }, { freq: 1047, duration: 0.09 }, { freq: 1319, duration: 0.22 }] },
     },
@@ -302,6 +319,72 @@ export const CONFIG = {
       cost: { exp: 1000 },
       effect: { type: 'unlock', target: 'prestige' },
       requires: ['foodBoost'], x: 100, y: 440,
+    },
+
+    // --- Tier 2 genişleme (yeni node'lar) ---
+
+    archerSplash: {
+      id: 'archerSplash', name: 'Archer Mastery',
+      description: 'Her 5. ok menzildeki düşmanlara %40 alan hasarı verir',
+      cost: { exp: 450, food: 30 },
+      effect: { type: 'archerSplash', splashEvery: 5, splashRadius: 55, splashFraction: 0.4 },
+      requires: ['archerMastery'], x: 480, y: 440,
+    },
+    laserChain: {
+      id: 'laserChain', name: 'Laser Enhancement II',
+      description: 'Laser her vuruşta ikinci bir hedefe %50 hasar iletir',
+      cost: { exp: 350 },
+      effect: { type: 'laserChain', chainFraction: 0.5 },
+      requires: ['laserBoost2'], x: 280, y: 200,
+    },
+    bossPenetration: {
+      id: 'bossPenetration', name: 'Artillery Specialist',
+      description: '+50% Boss hasarı — tüm savunucular',
+      cost: { exp: 800, food: 40 },
+      effect: { type: 'bossBonus', value: 0.5 },
+      requires: ['cannonPower1'], x: 660, y: 440,
+    },
+    foodBoost2: {
+      id: 'foodBoost2', name: 'Food Production II',
+      description: '+30% Yiyecek Kazanımı',
+      cost: { exp: 300 },
+      effect: { type: 'economy', stat: 'foodMultiplier', value: 0.3 },
+      requires: ['foodBoost'], x: 100, y: 560,
+    },
+    lavaConversion: {
+      id: 'lavaConversion', name: 'Lava Income Conversion',
+      description: 'Lava\'ya düşen düşmanlardan EXP verimi %35\'ten %80\'e yükselir',
+      cost: { exp: 600 },
+      effect: { type: 'lavaExpRate', value: 0.8 },
+      requires: ['expMultiplier'], x: 100, y: 320,
+    },
+    kingsDecree1: {
+      id: 'kingsDecree1', name: "King's Decree I",
+      description: '+40% tüm EXP ve Yiyecek kazanımı',
+      cost: { exp: 1500 },
+      effect: { type: 'incomeMultiplier', value: 0.4 },
+      requires: ['lavaConversion', 'foodBoost2'], x: 100, y: 680,
+    },
+    kingsDecree2: {
+      id: 'kingsDecree2', name: "King's Decree II",
+      description: '+60% tüm EXP ve Yiyecek kazanımı',
+      cost: { exp: 3000, food: 100 },
+      effect: { type: 'incomeMultiplier', value: 0.6 },
+      requires: ['kingsDecree1'], x: 280, y: 680,
+    },
+    frostUnlock: {
+      id: 'frostUnlock', name: 'Frost Tower Unlock',
+      description: 'Frost Tower açılır — düşmanları yavaşlatır',
+      cost: { exp: 700, food: 60 },
+      effect: { type: 'unlock', target: 'frost' },
+      requires: ['defenderAura'], x: 480, y: 560,
+    },
+    catapultUnlock: {
+      id: 'catapultUnlock', name: 'Catapult Unlock',
+      description: 'Catapult açılır — uzun menzilli büyük AoE',
+      cost: { exp: 1200, food: 80 },
+      effect: { type: 'unlock', target: 'catapult' },
+      requires: ['frostUnlock', 'bossPenetration'], x: 660, y: 560,
     },
   },
 };

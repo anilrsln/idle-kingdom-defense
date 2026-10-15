@@ -4,7 +4,6 @@ import { calculateEnemyHP, calculateEnemyEXP } from '../utils/MathUtils.js';
 import ConquestManager from '../systems/ConquestManager.js';
 import EconomyManager from '../systems/EconomyManager.js';
 import ComboManager from '../systems/ComboManager.js';
-import PerkManager from '../systems/PerkManager.js';
 
 /** Enemy — Sağdan spawn, sola yürü, lava veya savunucu ölümü. */
 export default class Enemy {
@@ -54,6 +53,15 @@ export default class Enemy {
 
   update(delta, enemies) {
     if (!this.alive || this.dying) return;
+    // Yavaşlatma debuff süresi bitti mi?
+    if (this._slowTimer !== undefined) {
+      this._slowTimer -= delta;
+      if (this._slowTimer <= 0) {
+        this._slowTimer = undefined;
+        if (this._baseSpeed !== undefined) { this.speed = this._baseSpeed; this._baseSpeed = undefined; }
+        if (this.sprite) this.sprite.clearTint();
+      }
+    }
     this.sprite.x -= this.speed * delta;
     this.updateHPBar();
     if (this.healConfig && enemies) this._updateHeal(delta, enemies);
@@ -171,8 +179,8 @@ export default class Enemy {
     ComboManager.registerKill();
     const comboMult = ComboManager.getMultiplier();
     const dbg = CONFIG.DEBUG?.gainMultiplier ?? 1;
-    const expMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('expMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('expBoost') * PerkManager.getMultiplier('exp') * comboMult;
-    const foodMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('foodMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('foodBoost') * PerkManager.getMultiplier('food') * comboMult;
+    const expMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('expMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('expBoost') * comboMult;
+    const foodMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('foodMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('foodBoost') * comboMult;
     const exp = this.expReward * expMult;
     const food = this.foodReward * foodMult;
     this._grantRewards(exp, food, 'defender');
@@ -196,9 +204,10 @@ export default class Enemy {
     if (this.dying) return;
     this.dying = true; this.alive = false;
     const dbg = CONFIG.DEBUG?.gainMultiplier ?? 1;
-    const expMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('expMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('expBoost') * PerkManager.getMultiplier('exp');
-    const foodMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('foodMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('foodBoost') * PerkManager.getMultiplier('food');
-    const exp = Math.floor(this.expReward * 0.5 * expMult);
+    const expMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('expMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('expBoost');
+    const foodMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('foodMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('foodBoost');
+    const lavaRate = ConquestManager.getLavaExpRate(); // varsayılan 0.5; lavaConversion → 0.8
+    const exp = Math.floor(this.expReward * lavaRate * expMult);
     const food = Math.floor(this.foodReward * 0.5 * foodMult);
     this._grantRewards(exp, food, 'lava');
     this.sprite.setTint(CONFIG.COLORS.LAVA);

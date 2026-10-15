@@ -71,13 +71,42 @@ const ConquestManager = {
       }
       case 'unlock': {
         if (effect.target === 'cannon') {
-          // Cannon'u hire edilebilir yap (hâlâ Food gerekiyor)
-          // unlocked sadece ilk hire'da true olacak — burada cannonAvailable flag
           GameState.defenders.cannon.canBeHired = true;
         }
         if (effect.target === 'prestige') {
           GameState.prestige.unlocked = true;
         }
+        if (effect.target === 'frost') {
+          GameState.defenders.frost.canBeHired = true;
+        }
+        if (effect.target === 'catapult') {
+          GameState.defenders.catapult.canBeHired = true;
+        }
+        break;
+      }
+      case 'archerSplash': {
+        // Her N. okta alan hasarı — parametreler doğrudan effect objesinde
+        bonuses.archerSplash = { splashEvery: effect.splashEvery, splashRadius: effect.splashRadius, splashFraction: effect.splashFraction };
+        break;
+      }
+      case 'laserChain': {
+        // Lazer ikinci hedefe zincirleme
+        bonuses.laserChain = { chainFraction: effect.chainFraction };
+        break;
+      }
+      case 'bossBonus': {
+        // Tüm savunuculardan boss'lara ek hasar çarpanı
+        bonuses.bossBonus = (bonuses.bossBonus || 0) + effect.value;
+        break;
+      }
+      case 'lavaExpRate': {
+        // Lava ölümlerindeki EXP oranını override eder (0..1 arası oran)
+        bonuses.lavaExpRate = effect.value;
+        break;
+      }
+      case 'incomeMultiplier': {
+        // Tüm geliri çarpan (exp + food) — economy multiplier üzerine ek katman
+        bonuses.incomeMultiplier = (bonuses.incomeMultiplier || 0) + effect.value;
         break;
       }
     }
@@ -107,10 +136,32 @@ const ConquestManager = {
     return total; // 0.25 = +25%
   },
 
-  /** Ekonomi çarpanını al. */
+  /** Ekonomi çarpanını al (economy + incomeMultiplier katmanları dahil). */
   getEconomyMultiplier(stat) {
     const bonuses = GameState.conquestMap.bonuses;
-    return 1 + (bonuses.economy?.[stat] || 0);
+    const base = 1 + (bonuses.economy?.[stat] || 0);
+    const income = 1 + (bonuses.incomeMultiplier || 0);
+    return base * income;
+  },
+
+  /** Boss'lara ek hasar çarpanı (1 + bonus). */
+  getBossBonus() {
+    return 1 + (GameState.conquestMap.bonuses.bossBonus || 0);
+  },
+
+  /** Lava EXP oranı (varsayılan 0.5; lavaConversion node'u 0.8 yapar). */
+  getLavaExpRate() {
+    return GameState.conquestMap.bonuses.lavaExpRate ?? 0.5;
+  },
+
+  /** Archer splash konfigürasyonu — null ise aktif değil. */
+  getArcherSplash() {
+    return GameState.conquestMap.bonuses.archerSplash || null;
+  },
+
+  /** Laser chain konfigürasyonu — null ise aktif değil. */
+  getLaserChain() {
+    return GameState.conquestMap.bonuses.laserChain || null;
   },
 
   /** Tüm node bilgilerini getir (UI için). */

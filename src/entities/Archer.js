@@ -1,6 +1,7 @@
 import { CONFIG } from '../config.js';
 import Defender from './Defender.js';
 import Projectile from './Projectile.js';
+import ConquestManager from '../systems/ConquestManager.js';
 
 /**
  * Archer — Ok atan savunucu.
@@ -12,6 +13,7 @@ export default class Archer extends Defender {
     this.index = index;
     this.sprite = scene.add.image(x, y, 'defender-archer').setDepth(5);
     this.projectiles = [];
+    this._shotCount = 0; // Archer Mastery splash sayacı
   }
 
   update(delta, enemies) {
@@ -33,10 +35,18 @@ export default class Archer extends Defender {
   }
 
   fire(target) {
-    const { damage, isCrit } = this.rollDamage();
+    this._shotCount++;
+    const isBoss = target.type?.startsWith('boss_');
+    const { damage, isCrit } = this.rollDamage(isBoss);
     const proj = new Projectile(this.scene, this.x, this.y, target, 'arrow', damage, 0, isCrit);
     this.projectiles.push(proj);
     this.scene.game.events.emit('sfx', 'archerFire');
+
+    // Archer Mastery: her N. okta splash (alan hasarı)
+    const splash = ConquestManager.getArcherSplash();
+    if (splash && this._shotCount % splash.splashEvery === 0 && target.sprite) {
+      this._applySplashDamage(target, damage * splash.splashFraction, splash.splashRadius);
+    }
 
     // Recoil animasyonu
     if (this.sprite) {
@@ -44,6 +54,25 @@ export default class Archer extends Defender {
         targets: this.sprite,
         x: this.x - 4, duration: 50, yoyo: true, ease: 'Power1',
       });
+    }
+  }
+
+  /** Belirtilen hedef etrafındaki düşmanlara alan hasarı uygular. */
+  _applySplashDamage(centerEnemy, splashDmg, radius) {
+    const enemies = this.scene.waveManager?.enemies;
+    if (!enemies) return;
+    const r2 = radius * radius;
+    const cx = centerEnemy.sprite.x, cy = centerEnemy.sprite.y;
+    // Görsel: turuncu parlama
+    const ring = this.scene.add.circle(cx, cy, radius * 0.5, 0xffaa00, 0.22).setDepth(9);
+    this.scene.tweens.add({
+      targets: ring, scaleX: 2, scaleY: 2, alpha: 0, duration: 350, ease: 'Power2',
+      onComplete: () => ring.destroy(),
+    });
+    for (const e of enemies) {
+      if (!e.alive || e.dying || !e.sprite || e === centerEnemy) continue;
+      const dx = e.sprite.x - cx, dy = e.sprite.y - cy;
+      if (dx * dx + dy * dy <= r2) e.takeDamage(Math.max(1, Math.floor(splashDmg)), false);
     }
   }
 

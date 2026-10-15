@@ -51,7 +51,8 @@ export default class Cannon extends Defender {
   }
 
   fire(target) {
-    const { damage, isCrit } = this.rollDamage();
+    const isBoss = target.type?.startsWith('boss_');
+    const { damage, isCrit } = this.rollDamage(isBoss);
     const radius = this.getBlastRadius();
     const proj = new Projectile(this.scene, this.x, this.y, target, 'cannonball', damage, radius, isCrit);
     this.projectiles.push(proj);

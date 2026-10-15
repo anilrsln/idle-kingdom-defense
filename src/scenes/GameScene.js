@@ -8,6 +8,8 @@ import ComboManager from '../systems/ComboManager.js';
 import LaserMonument from '../entities/LaserMonument.js';
 import Archer from '../entities/Archer.js';
 import Cannon from '../entities/Cannon.js';
+import FrostTower from '../entities/FrostTower.js';
+import Catapult from '../entities/Catapult.js';
 import { formatNumber } from '../utils/NumberFormatter.js';
 
 /**
@@ -31,6 +33,8 @@ export default class GameScene extends Phaser.Scene {
     this.laserMonument = new LaserMonument(this, CONFIG.DEFENDER_X, 250);
     this.archers = [];
     this.cannons = [];
+    this.frostTowers = [];
+    this.catapults = [];
 
     // Dalga yöneticisi
     this.waveManager = new WaveManager(this);
@@ -232,6 +236,14 @@ export default class GameScene extends Phaser.Scene {
     this.syncDefenders('cannon', this.cannons, Cannon);
     for (const c of this.cannons) c.update(delta, enemies);
 
+    // Frost Towers
+    this.syncDefenders('frost', this.frostTowers, FrostTower);
+    for (const f of this.frostTowers) f.update(delta, enemies);
+
+    // Catapults
+    this.syncDefenders('catapult', this.catapults, Catapult);
+    for (const ct of this.catapults) ct.update(delta, enemies);
+
     // Floating text güncelleme
     this.updateFloatingTexts(delta);
 
@@ -268,7 +280,7 @@ export default class GameScene extends Phaser.Scene {
       const corridorBottom = CONFIG.CANVAS_HEIGHT - CONFIG.LAVA_HEIGHT - 30;
       const spacing = (corridorBottom - corridorTop) / 6;
       const y = corridorTop + spacing * (idx + 1);
-      const x = CONFIG.DEFENDER_X + (type === 'cannon' ? 30 : 15);
+      const x = CONFIG.DEFENDER_X + (['cannon', 'catapult'].includes(type) ? 30 : 15);
       list.push(new DefenderClass(this, x, y, idx));
     }
 

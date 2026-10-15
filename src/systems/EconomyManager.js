@@ -54,8 +54,8 @@ const EconomyManager = {
     const state = GameState.defenders[defenderType];
     if (!state) return false;
 
-    // Cannon conquest kilidini kontrol et
-    if (defenderType === 'cannon' && state.canBeHired === false) return false;
+    // Conquest kilidi kontrolü (cannon / frost / catapult)
+    if (['cannon', 'frost', 'catapult'].includes(defenderType) && state.canBeHired === false) return false;
 
     const cost = this.getHireCost(defenderType);
     if (cost <= 0) return false;
@@ -93,7 +93,7 @@ const EconomyManager = {
   canAffordHire(defenderType) {
     const state = GameState.defenders[defenderType];
     if (!state) return false;
-    if (defenderType === 'cannon' && state.canBeHired === false) return false;
+    if (['cannon', 'frost', 'catapult'].includes(defenderType) && state.canBeHired === false) return false;
     if (state.unlocked && state.count >= state.maxCount) return false;
     const cost = this.getHireCost(defenderType);
     return GameState.resources.food >= cost;

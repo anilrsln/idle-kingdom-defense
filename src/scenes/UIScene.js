@@ -84,7 +84,7 @@ export default class UIScene extends Phaser.Scene {
     this.add.rectangle(CONFIG.CANVAS_WIDTH / 2, this.panelY, CONFIG.CANVAS_WIDTH, 2, CONFIG.COLORS.UI_ACCENT, 0.5).setDepth(101);
 
     // Sekmeler
-    this.tabs = ['laser', 'archer', 'cannon', 'economy'];
+    this.tabs = ['laser', 'archer', 'cannon', 'frost', 'catapult', 'economy'];
     this.activeTab = 'laser';
     this.tabButtons = [];
     this.createTabs();
@@ -173,8 +173,8 @@ export default class UIScene extends Phaser.Scene {
 
   // ═══════ SEKMELER ═══════
   createTabs() {
-    const tabNames = { laser: 'Laser', archer: 'Archer', cannon: 'Cannon', economy: 'Ekonomi' };
-    const tabWidth = 80, tabHeight = 22, startX = 10, tabY = this.panelY + 5;
+    const tabNames = { laser: 'Laser', archer: 'Archer', cannon: 'Cannon', frost: 'Frost', catapult: 'Catapult', economy: 'Ekonomi' };
+    const tabWidth = 78, tabHeight = 22, startX = 10, tabY = this.panelY + 5;
 
     this.tabs.forEach((type, i) => {
       const x = startX + i * (tabWidth + 5) + tabWidth / 2;
@@ -211,10 +211,11 @@ export default class UIScene extends Phaser.Scene {
     const info = UpgradeManager.getDefenderUpgradeInfo(this.activeTab);
     const startX = 10, startY = this.panelY + 32;
 
-    // Conquest kilidi (Cannon)
+    // Conquest kilidi (Cannon / Frost / Catapult)
     if (info.conquestLocked) {
+      const nodeHint = { cannon: 'Cannon Unlock', frost: 'Frost Tower Unlock', catapult: 'Catapult Unlock' };
       const lockText = this.add.text(CONFIG.CANVAS_WIDTH / 2, startY + 30,
-        '🔒 Unlock via Conquest Map (Cannon Unlock node)',
+        `🔒 Conquest Map'te "${nodeHint[this.activeTab] || 'Unlock'}" düğümünü satın al`,
         this.textStyle(12, '#888888')
       ).setOrigin(0.5).setDepth(102);
       this.upgradeElements.push(lockText);
@@ -373,11 +374,11 @@ export default class UIScene extends Phaser.Scene {
     const nextMult = PrestigeManager.getNextMultiplier();
 
     const info = this.add.text(cx, cy - 30, [
-      `Current Multiplier: ${currentMult.toFixed(2)}x`,
-      `After Prestige: ${nextMult.toFixed(2)}x`,
-      `🏆 Kazanılacak Trophy: +${PrestigeManager.getTrophyGain()}`,
+      `Current Multiplier: ${currentMult.toFixed(1)}x`,
+      `After Prestige: ${nextMult.toFixed(1)}x`,
       '',
-      'İlerleme sıfırlanır; çarpan ve Trophy kalıcı.',
+      'All progress will be RESET!',
+      'Multiplier is permanent.',
     ].join('\n'), {
       fontSize: '11px', fontFamily: 'monospace', color: '#cccccc',
       stroke: '#000', strokeThickness: 1, align: 'center',

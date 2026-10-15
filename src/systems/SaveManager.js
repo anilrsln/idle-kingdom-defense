@@ -38,11 +38,11 @@ const MIGRATIONS = {
     if (!gs.economy) gs.economy = { expBoost: { level: 0 }, foodBoost: { level: 0 } };
     return gs;
   },
-  // v4 → v5: prestige trophy + perk'leri
+  // v4 → v5: frost + catapult defender state alanları
   4: (gs) => {
-    if (!gs.prestige) gs.prestige = { unlocked: false, count: 0, multiplier: 1.0 };
-    if (gs.prestige.trophies == null) gs.prestige.trophies = 0;
-    if (!gs.prestige.perks) gs.prestige.perks = { exp: { level: 0 }, food: { level: 0 }, damage: { level: 0 }, start: { level: 0 }, mult: { level: 0 } };
+    if (!gs.defenders) gs.defenders = {};
+    if (!gs.defenders.frost)    gs.defenders.frost    = { unlocked: false, canBeHired: false, count: 0, maxCount: 3, damage: { level: 1 }, fireRate: { level: 1 }, range: { level: 1 } };
+    if (!gs.defenders.catapult) gs.defenders.catapult = { unlocked: false, canBeHired: false, count: 0, maxCount: 2, damage: { level: 1 }, blastRadius: { level: 1 }, reloadSpeed: { level: 1 } };
     return gs;
   },
 };
@@ -117,7 +117,7 @@ const SaveManager = {
     Object.assign(GameState.wave, gs.wave || {});
     // Defenders
     if (gs.defenders) {
-      for (const type of ['laser', 'archer', 'cannon']) {
+      for (const type of ['laser', 'archer', 'cannon', 'frost', 'catapult']) {
         if (gs.defenders[type]) {
           Object.assign(GameState.defenders[type], gs.defenders[type]);
         }

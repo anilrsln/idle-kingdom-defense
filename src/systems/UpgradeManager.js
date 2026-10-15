@@ -53,7 +53,7 @@ const UpgradeManager = {
       name: defConfig.name,
       type: defenderType,
       unlocked: defenderType === 'laser' || defState.unlocked,
-      conquestLocked: defenderType === 'cannon' && defState.canBeHired === false,
+      conquestLocked: ['cannon', 'frost', 'catapult'].includes(defenderType) && defState.canBeHired === false,
       count: defState.count ?? 1,
       maxCount: defState.maxCount ?? 1,
       hireCost: EconomyManager.getHireCost(defenderType),

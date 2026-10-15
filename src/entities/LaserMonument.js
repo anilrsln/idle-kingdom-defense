@@ -1,5 +1,6 @@
 import { CONFIG } from '../config.js';
 import Defender from './Defender.js';
+import ConquestManager from '../systems/ConquestManager.js';
 
 /**
  * LaserMonument — Sürekli lazer ışını, her zaman sabit konumda.
@@ -54,15 +55,44 @@ export default class LaserMonument extends Defender {
 
   applyDamage(delta) {
     if (!this.target || !this.target.alive || this.target.dying) return;
+    const isBoss = this.target.type?.startsWith('boss_');
     // Sürekli hasar: DPS = damage * fireRate
-    const dps = this.getDamage() * this.getFireRate();
+    const dps = this.getDamage(isBoss) * this.getFireRate();
     this.damageAccumulator += dps * delta;
 
     if (this.damageAccumulator >= 1) {
       const dmg = Math.floor(this.damageAccumulator);
       this.damageAccumulator -= dmg;
       this.target.takeDamage(dmg, false); // lazer flash yok (sürekli hasar)
+
+      // Laser Enhancement II: chain — en yakın ikinci hedefe ek hasar
+      const chain = ConquestManager.getLaserChain();
+      if (chain) this._applyChain(dmg, chain.chainFraction);
     }
+  }
+
+  /** Laser Chain: ana hedeften sonra en yakın ikinci düşmana zincirleme hasar. */
+  _applyChain(primaryDmg, fraction) {
+    const enemies = this.scene.waveManager?.enemies;
+    if (!enemies || !this.target?.sprite) return;
+    let chainTarget = null, closestDist = Infinity;
+    const tx = this.target.sprite.x, ty = this.target.sprite.y;
+    for (const e of enemies) {
+      if (!e.alive || e.dying || e === this.target || !e.sprite) continue;
+      const dx = e.sprite.x - tx, dy = e.sprite.y - ty;
+      const dist = dx * dx + dy * dy;
+      if (dist < closestDist) { closestDist = dist; chainTarget = e; }
+    }
+    if (!chainTarget) return;
+    chainTarget.takeDamage(Math.max(1, Math.floor(primaryDmg * fraction)), false);
+    // Görsel: zincir çizgisi
+    const g = this.scene.add.graphics().setDepth(7);
+    g.lineStyle(1, 0x44eeff, 0.55);
+    g.beginPath();
+    g.moveTo(this.target.sprite.x, this.target.sprite.y);
+    g.lineTo(chainTarget.sprite.x, chainTarget.sprite.y);
+    g.strokePath();
+    this.scene.time.delayedCall(120, () => g.destroy());
   }
 
   updateGlow() {
