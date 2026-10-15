@@ -18,7 +18,7 @@ export const CONFIG = {
   // Kaydetme
   SAVE_KEY: 'idle-kingdom-defense-save',
   SAVE_INTERVAL: 30000,
-  SAVE_VERSION: 4, // save şema sürümü — değişince artır + SaveManager'a migration ekle
+  SAVE_VERSION: 5, // save şema sürümü — değişince artır + SaveManager'a migration ekle
 
   // Idle sistemi
   IDLE_EFFICIENCY: 0.5,
@@ -177,6 +177,18 @@ export const CONFIG = {
 
   // Prestige
   PRESTIGE: { multiplierPerPrestige: 0.5 },
+
+  // Prestige Trophy perk'leri — kalıcı (prestige'de korunur, Yeni Oyun'da sıfırlanır).
+  // Trophy, her prestige'de kazanılır (bkz. TROPHY_PER_PRESTIGE) ve bu perk'lere harcanır.
+  // Maliyet = baseCost + level × costStep (Trophy)
+  TROPHY_PER_PRESTIGE: 1, // temel; yüksek wave bonusu PrestigeManager'da eklenir
+  PRESTIGE_PERKS: {
+    exp:     { name: 'EXP Ustalığı',    desc: '+%15 EXP (kalıcı)',        type: 'exp',      bonusPerLevel: 0.15, baseCost: 1, costStep: 1, maxLevel: 20 },
+    food:    { name: 'Erzak Ustalığı',  desc: '+%15 Food (kalıcı)',       type: 'food',     bonusPerLevel: 0.15, baseCost: 1, costStep: 1, maxLevel: 20 },
+    damage:  { name: 'Savaş Ustalığı',  desc: '+%10 tüm hasar (kalıcı)',  type: 'damage',   bonusPerLevel: 0.10, baseCost: 2, costStep: 1, maxLevel: 20 },
+    start:   { name: 'Hazır Başlangıç', desc: 'Prestige sonrası +500 EXP/level', type: 'start', bonusPerLevel: 500, baseCost: 2, costStep: 2, maxLevel: 10 },
+    mult:    { name: 'Prestige Gücü',   desc: 'Prestige çarpanına +0.25/level', type: 'mult', bonusPerLevel: 0.25, baseCost: 3, costStep: 3, maxLevel: 10 },
+  },
 
   // Ses sistemi — prosedürel (Web Audio) SFX reçeteleri.
   // Asset dosyası yok; her efekt runtime'da sentezlenir. İleride sample

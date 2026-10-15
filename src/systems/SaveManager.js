@@ -38,6 +38,13 @@ const MIGRATIONS = {
     if (!gs.economy) gs.economy = { expBoost: { level: 0 }, foodBoost: { level: 0 } };
     return gs;
   },
+  // v4 → v5: prestige trophy + perk'leri
+  4: (gs) => {
+    if (!gs.prestige) gs.prestige = { unlocked: false, count: 0, multiplier: 1.0 };
+    if (gs.prestige.trophies == null) gs.prestige.trophies = 0;
+    if (!gs.prestige.perks) gs.prestige.perks = { exp: { level: 0 }, food: { level: 0 }, damage: { level: 0 }, start: { level: 0 }, mult: { level: 0 } };
+    return gs;
+  },
 };
 
 const SaveManager = {

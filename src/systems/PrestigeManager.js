@@ -1,8 +1,10 @@
 import GameState, { resetForPrestige } from '../state/GameState.js';
+import { CONFIG } from '../config.js';
 import ConquestManager from './ConquestManager.js';
+import PerkManager from './PerkManager.js';
 
 /**
- * PrestigeManager — Prestige koşul kontrolü, reset, çarpan hesaplama.
+ * PrestigeManager — Prestige koşul kontrolü, reset, çarpan + trophy hesaplama.
  * Prestige yapılabilmesi için ConquestMap'te prestigeUnlock node'u açılmış olmalı.
  */
 const PrestigeManager = {
@@ -11,10 +13,14 @@ const PrestigeManager = {
     return GameState.prestige.unlocked === true;
   },
 
-  /** Prestige sonrası kazanılacak yeni çarpanı hesaplar. */
+  /** Verilen prestige sayısı için çarpan (perk bonusu dahil). */
+  multiplierFor(count) {
+    return 1 + (count * CONFIG.PRESTIGE.multiplierPerPrestige) + PerkManager.getPrestigeBonus();
+  },
+
+  /** Prestige sonrası kazanılacak yeni çarpan. */
   getNextMultiplier() {
-    const nextCount = GameState.prestige.count + 1;
-    return 1 + (nextCount * 0.5);
+    return this.multiplierFor(GameState.prestige.count + 1);
   },
 
   /** Mevcut çarpanı döndürür. */
@@ -22,28 +28,40 @@ const PrestigeManager = {
     return GameState.prestige.multiplier;
   },
 
+  /** Bu prestige'de kazanılacak Trophy sayısı (yüksek wave = daha çok). */
+  getTrophyGain() {
+    const wave = GameState.wave.current || 1;
+    return CONFIG.TROPHY_PER_PRESTIGE + Math.floor(wave / 25);
+  },
+
   /**
    * Prestige işlemini gerçekleştirir.
-   * @returns {boolean} Başarılı mı
+   * @returns {{ trophies: number } | false}
    */
   doPrestige() {
     if (!this.canPrestige()) return false;
 
-    // Çarpanı güncelle
-    GameState.prestige.count += 1;
-    GameState.prestige.multiplier = 1 + (GameState.prestige.count * 0.5);
+    // Trophy kazancı (reset'ten ÖNCE, güncel wave'e göre)
+    const gain = this.getTrophyGain();
 
-    // İlerlemeyi sıfırla (çarpan ve count korunur)
+    // Çarpanı ve sayacı güncelle (perk bonusu dahil)
+    GameState.prestige.count += 1;
+    GameState.prestige.multiplier = this.multiplierFor(GameState.prestige.count);
+
+    // İlerlemeyi sıfırla (trophy/perk/count/multiplier korunur)
     resetForPrestige(GameState);
 
     // Conquest bonuslarını temizle
     GameState.conquestMap.bonuses = {};
     GameState.prestige.unlocked = false;
 
-    return true;
+    // Trophy'leri ekle + başlangıç bonusu perk'ini uygula
+    GameState.prestige.trophies += gain;
+    GameState.resources.exp += PerkManager.getStartBonus();
+
+    return { trophies: gain };
   },
 
-  /** Prestige sayısını döndürür. */
   getPrestigeCount() {
     return GameState.prestige.count;
   },

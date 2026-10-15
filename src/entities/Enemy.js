@@ -4,6 +4,7 @@ import { calculateEnemyHP, calculateEnemyEXP } from '../utils/MathUtils.js';
 import ConquestManager from '../systems/ConquestManager.js';
 import EconomyManager from '../systems/EconomyManager.js';
 import ComboManager from '../systems/ComboManager.js';
+import PerkManager from '../systems/PerkManager.js';
 
 /** Enemy — Sağdan spawn, sola yürü, lava veya savunucu ölümü. */
 export default class Enemy {
@@ -155,8 +156,8 @@ export default class Enemy {
     ComboManager.registerKill();
     const comboMult = ComboManager.getMultiplier();
     const dbg = CONFIG.DEBUG?.gainMultiplier ?? 1;
-    const expMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('expMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('expBoost') * comboMult;
-    const foodMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('foodMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('foodBoost') * comboMult;
+    const expMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('expMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('expBoost') * PerkManager.getMultiplier('exp') * comboMult;
+    const foodMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('foodMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('foodBoost') * PerkManager.getMultiplier('food') * comboMult;
     const exp = this.expReward * expMult;
     const food = this.foodReward * foodMult;
     this._grantRewards(exp, food, 'defender');
@@ -180,8 +181,8 @@ export default class Enemy {
     if (this.dying) return;
     this.dying = true; this.alive = false;
     const dbg = CONFIG.DEBUG?.gainMultiplier ?? 1;
-    const expMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('expMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('expBoost');
-    const foodMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('foodMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('foodBoost');
+    const expMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('expMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('expBoost') * PerkManager.getMultiplier('exp');
+    const foodMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('foodMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('foodBoost') * PerkManager.getMultiplier('food');
     const exp = Math.floor(this.expReward * 0.5 * expMult);
     const food = Math.floor(this.foodReward * 0.5 * foodMult);
     this._grantRewards(exp, food, 'lava');

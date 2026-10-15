@@ -4,6 +4,7 @@ import SaveManager from '../systems/SaveManager.js';
 import IdleManager from '../systems/IdleManager.js';
 import SoundManager from '../systems/SoundManager.js';
 import AchievementManager from '../systems/AchievementManager.js';
+import PerkManager from '../systems/PerkManager.js';
 
 /**
  * MenuScene — Ana Menü (açılış) + Ayarlar/Pause (oyun içi).
@@ -76,6 +77,14 @@ export default class MenuScene extends Phaser.Scene {
       label: `🏆  Başarımlar (${AchievementManager.unlockedCount()}/${AchievementManager.total()})`,
       color: CONFIG.COLORS.UI_BUTTON, onClick: () => this.openAchievements(),
     });
+
+    // Trophy Dükkânı — sadece oyun içi (pause); start'ta save henüz yüklü değil
+    if (this.mode === 'pause') {
+      specs.push({
+        label: `✦  Trophy Dükkânı (${GameState.prestige.trophies} 🏆)`,
+        color: 0x5a3a7a, onClick: () => this.openTrophyShop(),
+      });
+    }
 
     // Ses toggle (her iki modda)
     specs.push({ label: this.soundLabel(), color: 0x2a2a4a, onClick: () => this.toggleSound(), isSound: true });
@@ -230,6 +239,74 @@ export default class MenuScene extends Phaser.Scene {
     closeBg.on('pointerout', () => closeBg.setFillStyle(0x444466));
 
     this.achvPanel = { close };
+  }
+
+  /** Prestige Trophy dükkânı — perk'leri Trophy ile satın al. */
+  openTrophyShop() {
+    if (this.trophyPanel) return;
+    const cx = this.cx, cy = CONFIG.CANVAS_HEIGHT / 2;
+    const w = 460, h = 420, top = cy - h / 2;
+    this.trophyEls = [];
+
+    const bg = this.add.rectangle(cx, cy, w, h, 0x0a0a1a, 0.98).setDepth(430).setStrokeStyle(2, 0x9b59b6);
+    const title = this.add.text(cx, top + 18, '✦ Trophy Dükkânı', this._ts(14, '#b07cc8')).setOrigin(0.5).setDepth(431);
+    const bal = this.add.text(cx, top + 38, `Bakiye: ${GameState.prestige.trophies} 🏆`, this._ts(12, '#ffd700')).setOrigin(0.5).setDepth(431);
+    this.trophyEls.push(bg, title, bal);
+
+    this._renderTrophyRows(top + 60, w);
+
+    const closeBg = this.add.rectangle(cx, cy + h / 2 - 22, 120, 30, 0x444466).setDepth(431).setInteractive({ useHandCursor: true });
+    const closeTxt = this.add.text(cx, cy + h / 2 - 22, 'KAPAT', this._ts(12, '#ffffff')).setOrigin(0.5).setDepth(432);
+    this.trophyEls.push(closeBg, closeTxt);
+    const close = () => { (this.trophyEls || []).forEach(e => e.destroy()); this.trophyEls = []; this.trophyPanel = null; };
+    closeBg.on('pointerdown', close);
+    closeBg.on('pointerover', () => closeBg.setFillStyle(0x555577));
+    closeBg.on('pointerout', () => closeBg.setFillStyle(0x444466));
+
+    this.trophyPanel = { close };
+  }
+
+  /** Perk satırlarını (yeniden) çizer. */
+  _renderTrophyRows(startY, w) {
+    // Eski satırları temizle (bg/title/bal/close hariç ilk 3 + son 2 korunur)
+    if (this._trophyRows) this._trophyRows.forEach(e => e.destroy());
+    this._trophyRows = [];
+    const cx = this.cx;
+    let ly = startY;
+
+    for (const p of PerkManager.getAll()) {
+      const nameTxt = this.add.text(cx - w / 2 + 16, ly, `${p.name}  Lv.${p.level}/${p.maxLevel}`, this._ts(11, '#ffffff')).setOrigin(0, 0.5).setDepth(431);
+      const descTxt = this.add.text(cx - w / 2 + 16, ly + 15, p.desc, this._ts(9, '#999999')).setOrigin(0, 0.5).setDepth(431);
+      this._trophyRows.push(nameTxt, descTxt);
+
+      const bx = cx + w / 2 - 70;
+      if (p.maxed) {
+        const maxTxt = this.add.text(bx, ly + 6, 'MAX', this._ts(11, '#66ff99')).setOrigin(0.5).setDepth(431);
+        this._trophyRows.push(maxTxt);
+      } else {
+        const color = p.canAfford ? 0x5a3a7a : CONFIG.COLORS.UI_BUTTON_DISABLED;
+        const btn = this.add.rectangle(bx, ly + 6, 110, 26, color).setDepth(431).setInteractive({ useHandCursor: true });
+        const btnTxt = this.add.text(bx, ly + 6, `${p.cost} 🏆`, this._ts(11, p.canAfford ? '#ffd700' : '#666666')).setOrigin(0.5).setDepth(432);
+        btn.on('pointerdown', () => {
+          if (PerkManager.purchase(p.key)) {
+            this._refreshTrophyShop(startY, w);
+          }
+        });
+        btn.on('pointerover', () => { if (p.canAfford) btn.setFillStyle(0x7a5a9a); });
+        btn.on('pointerout', () => btn.setFillStyle(p.canAfford ? 0x5a3a7a : CONFIG.COLORS.UI_BUTTON_DISABLED));
+        this._trophyRows.push(btn, btnTxt);
+      }
+      ly += 48;
+    }
+  }
+
+  /** Satın alma sonrası bakiye + satırları tazeler. */
+  _refreshTrophyShop(startY, w) {
+    // bakiye metni trophyEls[2]
+    if (this.trophyEls && this.trophyEls[2]) {
+      this.trophyEls[2].setText(`Bakiye: ${GameState.prestige.trophies} 🏆`);
+    }
+    this._renderTrophyRows(startY, w);
   }
 
   showConfirm(message, onYes) {

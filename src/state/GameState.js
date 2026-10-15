@@ -30,7 +30,11 @@ const GameState = {
     },
   },
   economy: { expBoost: { level: 0 }, foodBoost: { level: 0 } }, // run içi ekonomi upgrade'leri
-  prestige: { unlocked: false, count: 0, multiplier: 1.0 },
+  // trophies + perks: prestige'de KORUNUR, Yeni Oyun'da sıfırlanır (kalıcı meta ilerleme)
+  prestige: {
+    unlocked: false, count: 0, multiplier: 1.0, trophies: 0,
+    perks: { exp: { level: 0 }, food: { level: 0 }, damage: { level: 0 }, start: { level: 0 }, mult: { level: 0 } },
+  },
   settings: { soundEnabled: true, masterVolume: 0.5 },
   stats: {
     totalEnemiesKilled: 0, totalExpEarned: 0,
@@ -55,7 +59,10 @@ export function resetAll(state) {
   };
   state.conquestMap = { unlockedNodes: [], bonuses: {} };
   state.economy = { expBoost: { level: 0 }, foodBoost: { level: 0 } };
-  state.prestige = { unlocked: false, count: 0, multiplier: 1.0 };
+  state.prestige = {
+    unlocked: false, count: 0, multiplier: 1.0, trophies: 0,
+    perks: { exp: { level: 0 }, food: { level: 0 }, damage: { level: 0 }, start: { level: 0 }, mult: { level: 0 } },
+  };
   state.stats = { totalEnemiesKilled: 0, totalExpEarned: 0, totalFoodEarned: 0, totalWavesCompleted: 0, bossesKilled: 0 };
   state.achievements = { unlocked: [] };
   state.meta = { ...state.meta, lastSaveTime: Date.now(), totalPlayTime: 0, expRate: 0, foodRate: 0 };

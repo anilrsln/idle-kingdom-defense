@@ -2,6 +2,7 @@ import { CONFIG } from '../config.js';
 import GameState from '../state/GameState.js';
 import { calculateValue } from '../utils/MathUtils.js';
 import ConquestManager from '../systems/ConquestManager.js';
+import PerkManager from '../systems/PerkManager.js';
 
 /**
  * Defender — Savunucu base class.
@@ -36,7 +37,7 @@ export default class Defender {
     const l = this.getStateLevels();
     const base = calculateValue(this.config.damage.base, this.config.damage.multiplier, l.damage);
     const bonus = ConquestManager.getDefenderBonus(this.type, 'damage');
-    return base * (1 + bonus);
+    return base * (1 + bonus) * PerkManager.getMultiplier('damage');
   }
 
   /** Ateş başına hasar + kritik rulosu (mermi savunucuları için). */

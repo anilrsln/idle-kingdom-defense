@@ -338,11 +338,11 @@ export default class UIScene extends Phaser.Scene {
     const nextMult = PrestigeManager.getNextMultiplier();
 
     const info = this.add.text(cx, cy - 30, [
-      `Current Multiplier: ${currentMult.toFixed(1)}x`,
-      `After Prestige: ${nextMult.toFixed(1)}x`,
+      `Current Multiplier: ${currentMult.toFixed(2)}x`,
+      `After Prestige: ${nextMult.toFixed(2)}x`,
+      `🏆 Kazanılacak Trophy: +${PrestigeManager.getTrophyGain()}`,
       '',
-      'All progress will be RESET!',
-      'Multiplier is permanent.',
+      'İlerleme sıfırlanır; çarpan ve Trophy kalıcı.',
     ].join('\n'), {
       fontSize: '11px', fontFamily: 'monospace', color: '#cccccc',
       stroke: '#000', strokeThickness: 1, align: 'center',
