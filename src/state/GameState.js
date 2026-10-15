@@ -30,6 +30,7 @@ const GameState = {
     },
   },
   prestige: { unlocked: false, count: 0, multiplier: 1.0 },
+  settings: { soundEnabled: true, masterVolume: 0.5 },
   stats: {
     totalEnemiesKilled: 0, totalExpEarned: 0,
     totalFoodEarned: 0, totalWavesCompleted: 0,

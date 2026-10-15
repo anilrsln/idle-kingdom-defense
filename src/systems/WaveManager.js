@@ -63,6 +63,7 @@ export default class WaveManager {
       completedWave: GameState.wave.current - 1,
       nextWave: GameState.wave.current,
     });
+    this.scene.game.events.emit('sfx', 'waveComplete');
     this.isWaveBreak = true;
     this.waveBreakTimer = CONFIG.WAVES.timeBetweenWaves;
     this.calculateWaveEnemies();

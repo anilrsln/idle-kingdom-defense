@@ -36,6 +36,7 @@ export default class Archer extends Defender {
     const dmg = this.getDamage();
     const proj = new Projectile(this.scene, this.x, this.y, target, 'arrow', dmg);
     this.projectiles.push(proj);
+    this.scene.game.events.emit('sfx', 'archerFire');
 
     // Recoil animasyonu
     if (this.sprite) {

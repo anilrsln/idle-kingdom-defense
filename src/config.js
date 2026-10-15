@@ -96,6 +96,30 @@ export const CONFIG = {
 
   // Prestige
   PRESTIGE: { multiplierPerPrestige: 0.5 },
+
+  // Ses sistemi — prosedürel (Web Audio) SFX reçeteleri.
+  // Asset dosyası yok; her efekt runtime'da sentezlenir. İleride sample
+  // tabanlıya geçerken bu reçeteler { sample: 'path' } ile değiştirilebilir.
+  SOUND: {
+    enabled: true,        // Varsayılan ses durumu (save ile override edilir)
+    masterVolume: 0.5,    // 0..1 — tüm SFX'lere çarpan
+    // engine: 'tone' (osilatör, opsiyonel frekans süpürmesi)
+    //         'noise' (lowpass'tan geçen gürültü patlaması)
+    //         'sequence' (arka arkaya notalar — fanfar/çoklu ton)
+    sfx: {
+      archerFire:    { engine: 'tone',  type: 'triangle', freq: 880, freqEnd: 480, duration: 0.07, gain: 0.12, throttleMs: 45 },
+      cannonFire:    { engine: 'noise', freq: 400, freqEnd: 60,  duration: 0.30, gain: 0.40, throttleMs: 60 },
+      deathDefender: { engine: 'tone',  type: 'square',   freq: 420, freqEnd: 180, duration: 0.09, gain: 0.16, throttleMs: 25 },
+      deathLava:     { engine: 'noise', freq: 600, freqEnd: 120, duration: 0.22, gain: 0.22, throttleMs: 40 },
+      upgrade:       { engine: 'tone',  type: 'sine',     freq: 660, freqEnd: 990, duration: 0.12, gain: 0.25 },
+      hire:          { engine: 'sequence', type: 'sine', gain: 0.28, notes: [{ freq: 523, duration: 0.09 }, { freq: 784, duration: 0.12 }] },
+      waveComplete:  { engine: 'sequence', type: 'triangle', gain: 0.26, notes: [{ freq: 523, duration: 0.10 }, { freq: 659, duration: 0.10 }, { freq: 784, duration: 0.14 }] },
+      prestige:      { engine: 'sequence', type: 'sawtooth', gain: 0.30, notes: [{ freq: 392, duration: 0.12 }, { freq: 523, duration: 0.12 }, { freq: 659, duration: 0.12 }, { freq: 1047, duration: 0.22 }] },
+      uiDenied:      { engine: 'tone',  type: 'square',   freq: 220, freqEnd: 160, duration: 0.10, gain: 0.14, throttleMs: 80 },
+      mapOpen:       { engine: 'tone',  type: 'sine',     freq: 440, freqEnd: 660, duration: 0.10, gain: 0.18 },
+    },
+  },
+
   // Conquest Map — Skill Tree node'ları
   CONQUEST_NODES: {
     laserBoost1: {

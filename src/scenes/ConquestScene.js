@@ -130,6 +130,7 @@ export default class ConquestScene extends Phaser.Scene {
 
   onNodeClick(node) {
     if (ConquestManager.purchase(node.id)) {
+      this.game.events.emit('sfx', 'hire');
       // Başarılı satın alma — yeniden çiz
       this.drawConnections();
       this.createNodes();
@@ -141,6 +142,8 @@ export default class ConquestScene extends Phaser.Scene {
         targets: flash, alpha: 0, duration: 300,
         onComplete: () => flash.destroy(),
       });
+    } else {
+      this.game.events.emit('sfx', 'uiDenied');
     }
   }
 

@@ -55,6 +55,7 @@ export default class Cannon extends Defender {
     const radius = this.getBlastRadius();
     const proj = new Projectile(this.scene, this.x, this.y, target, 'cannonball', dmg, radius);
     this.projectiles.push(proj);
+    this.scene.game.events.emit('sfx', 'cannonFire');
 
     // Ateşleme efekti: sarsıntı + alev
     if (this.sprite) {

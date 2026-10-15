@@ -67,6 +67,10 @@ const SaveManager = {
     if (gs.prestige) {
       Object.assign(GameState.prestige, gs.prestige);
     }
+    // Settings (ses) — eski save'lerde olmayabilir
+    if (gs.settings) {
+      Object.assign(GameState.settings, gs.settings);
+    }
     // Stats
     if (gs.stats) {
       Object.assign(GameState.stats, gs.stats);

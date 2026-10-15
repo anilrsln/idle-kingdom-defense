@@ -86,6 +86,7 @@ export default class Enemy {
       type: this.type, exp, food,
       x: this.sprite.x, y: this.sprite.y, killedBy,
     });
+    this.scene.game.events.emit('sfx', killedBy === 'lava' ? 'deathLava' : 'deathDefender');
   }
 
   updateHPBar() {
