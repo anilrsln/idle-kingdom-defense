@@ -40,6 +40,11 @@ export default class GameScene extends Phaser.Scene {
     this.events.on('enemy-killed', this.onEnemyKilled, this);
     this.events.on('wave-complete', this.onWaveComplete, this);
 
+    // Dev panel: belirli bir wave'e atla
+    this.game.events.off('dev-jump-wave', this.onDevJumpWave, this);
+    this.game.events.on('dev-jump-wave', this.onDevJumpWave, this);
+    this.events.once('shutdown', () => this.game.events.off('dev-jump-wave', this.onDevJumpWave, this));
+
     // UIScene'i başlat
     this.scene.launch('UIScene');
 
@@ -178,7 +183,8 @@ export default class GameScene extends Phaser.Scene {
 
   // ═══════════════ Güncelleme ═══════════════
   update(time, deltaMs) {
-    const delta = deltaMs / 1000;
+    // Oyun hızı çarpanı (dev panel) — tüm simülasyona uygulanır
+    const delta = (deltaMs / 1000) * (CONFIG.DEBUG?.timeScale ?? 1);
 
     // Dalga yöneticisi
     this.waveManager.update(delta);
@@ -265,6 +271,17 @@ export default class GameScene extends Phaser.Scene {
       CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2 - 30,
       0xffd700, 24, 1500
     );
+  }
+
+  /** Dev panel: belirli bir wave'e atla. */
+  onDevJumpWave(n) {
+    const wave = Math.max(1, Math.floor(n) || 1);
+    GameState.wave.current = wave;
+    if (this.waveManager) {
+      this.waveManager.clearAll();
+      this.waveManager.calculateWaveEnemies();
+    }
+    this.showFloatingText(`→ Wave ${wave}`, CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2 - 30, 0x00ffff, 22, 1200);
   }
 
   showFloatingText(text, x, y, color = 0xffffff, size = 14, duration = 800) {

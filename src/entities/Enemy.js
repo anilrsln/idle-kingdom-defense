@@ -45,8 +45,9 @@ export default class Enemy {
   dieToDefender() {
     if (this.dying) return;
     this.dying = true; this.alive = false;
-    const expMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('expMultiplier');
-    const foodMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('foodMultiplier');
+    const dbg = CONFIG.DEBUG?.gainMultiplier ?? 1;
+    const expMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('expMultiplier') * dbg;
+    const foodMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('foodMultiplier') * dbg;
     const exp = this.expReward * expMult;
     const food = this.foodReward * foodMult;
     this._grantRewards(exp, food, 'defender');
@@ -61,8 +62,9 @@ export default class Enemy {
   dieToLava() {
     if (this.dying) return;
     this.dying = true; this.alive = false;
-    const expMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('expMultiplier');
-    const foodMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('foodMultiplier');
+    const dbg = CONFIG.DEBUG?.gainMultiplier ?? 1;
+    const expMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('expMultiplier') * dbg;
+    const foodMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('foodMultiplier') * dbg;
     const exp = Math.floor(this.expReward * 0.5 * expMult);
     const food = Math.floor(this.foodReward * 0.5 * foodMult);
     this._grantRewards(exp, food, 'lava');

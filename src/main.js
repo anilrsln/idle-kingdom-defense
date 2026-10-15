@@ -5,6 +5,7 @@ import GameScene from './scenes/GameScene.js';
 import UIScene from './scenes/UIScene.js';
 import ConquestScene from './scenes/ConquestScene.js';
 import SoundManager from './systems/SoundManager.js';
+import DevPanel from './systems/DevPanel.js';
 
 /**
  * main.js — Oyun giriş noktası.
@@ -29,5 +30,8 @@ const game = new Phaser.Game(config);
 
 // Ses sistemi — global 'sfx' kanalına abone olur, ilk etkileşimde başlar.
 SoundManager.init(game);
+
+// Dev tuning paneli — yalnızca ?dev modunda görünür.
+DevPanel.init(game);
 
 export default game;

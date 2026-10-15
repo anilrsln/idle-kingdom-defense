@@ -27,6 +27,13 @@ export const CONFIG = {
   // Upgrade maliyet çarpanı
   UPGRADE_COST_MULTIPLIER: 1.15,
 
+  // Debug / runtime tuning (yalnızca ?dev modunda dev panel üzerinden değişir)
+  DEBUG: {
+    timeScale: 1,       // oyun hızı çarpanı
+    gainMultiplier: 1,  // test için EXP/Food kazanç çarpanı
+    jumpWaveTarget: 10, // "wave'e atla" hedefi
+  },
+
   // Renk paleti
   COLORS: {
     WALL: 0x4a4a6a, WALL_TOP: 0x5a5a7a,
