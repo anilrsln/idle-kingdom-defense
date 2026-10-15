@@ -19,6 +19,8 @@ const SoundManager = {
   _masterGain: null,
   _game: null,
   _noiseBuffer: null,
+  _sampleBuffers: {},   // yüklenmiş .wav/.mp3 decode buffer'ları
+  _sampleLoading: {},   // yüklenmekte olanlar (çift fetch engeli)
   _lastPlayed: {},      // throttle takibi: { sfxName: timestampMs }
   _initialized: false,
 
@@ -98,6 +100,8 @@ const SoundManager = {
     }
 
     try {
+      // Gerçek ses dosyası verilmişse onu çal; yoksa sentezle.
+      if (recipe.sample) { this._playSample(name, recipe); return; }
       switch (recipe.engine) {
         case 'noise':    this._playNoise(recipe); break;
         case 'sequence': this._playSequence(recipe); break;
@@ -107,6 +111,30 @@ const SoundManager = {
     } catch (e) {
       console.warn('SFX play failed:', name, e);
     }
+  },
+
+  /** Dosya tabanlı SFX — ilk çalışta yüklenip cache'lenir. */
+  _playSample(name, recipe) {
+    const buf = this._sampleBuffers[name];
+    if (buf) { this._playBuffer(buf, recipe.gain); return; }
+    if (this._sampleLoading[name]) return;
+    this._sampleLoading[name] = true;
+    fetch(recipe.sample)
+      .then((r) => r.arrayBuffer())
+      .then((ab) => this._ctx.decodeAudioData(ab))
+      .then((decoded) => { this._sampleBuffers[name] = decoded; this._playBuffer(decoded, recipe.gain); })
+      .catch((e) => console.warn('Sample load failed:', name, e))
+      .finally(() => { this._sampleLoading[name] = false; });
+  },
+
+  _playBuffer(buffer, gainValue) {
+    const src = this._ctx.createBufferSource();
+    src.buffer = buffer;
+    const gain = this._ctx.createGain();
+    gain.gain.value = gainValue ?? 1;
+    src.connect(gain);
+    gain.connect(this._masterGain);
+    src.start();
   },
 
   /** Tek osilatör tonu, opsiyonel frekans süpürmesi + decay envelope. */

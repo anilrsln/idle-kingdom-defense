@@ -81,6 +81,29 @@ export const CONFIG = {
     cannonball: { speed: 200, size: 5 },
   },
 
+  // ─────────────────────────────────────────────────────────────
+  // ASSET MANIFEST — her texture anahtarının tek görsel kaynağı.
+  // Şimdi: geometrik placeholder (shape/size/color). Oyun kodu yalnızca
+  // anahtarı kullanır; ileride buraya `sprite` eklemek (örn.
+  // { sprite: 'assets/skeleton.png', frames: { frameWidth, frameHeight } })
+  // oynanışa dokunmadan görseli değiştirir.
+  // ─────────────────────────────────────────────────────────────
+  ASSETS: {
+    // Düşmanlar
+    'enemy-skeleton':    { shape: 'circle', size: 8,  color: 0xcccccc },
+    'enemy-armored':     { shape: 'circle', size: 10, color: 0x888888 },
+    'enemy-fast':        { shape: 'circle', size: 7,  color: 0xff6666 },
+    'enemy-foodCarrier': { shape: 'circle', size: 9,  color: 0x66ff66 },
+    'enemy-elite':       { shape: 'circle', size: 12, color: 0xffaa00 },
+    // Savunucular
+    'defender-laser':    { shape: 'rect', width: 24, height: 32, color: 0x00ffff },
+    'defender-archer':   { shape: 'triangle', size: 16, color: 0x7cfc00 },
+    'defender-cannon':   { shape: 'rect', width: 20, height: 20, color: 0xff8c00 },
+    // Mermiler
+    'projectile-arrow':      { shape: 'circle', size: 3, color: 0x7cfc00 },
+    'projectile-cannonball': { shape: 'circle', size: 5, color: 0xff8c00 },
+  },
+
   // Düşman değerleri
   ENEMIES: {
     skeleton:    { name: 'Skeleton',         hp: 10,  speed: 30, exp: 2,  food: 0, color: 0xcccccc },
