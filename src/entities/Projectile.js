@@ -6,12 +6,13 @@ import { distance } from '../utils/MathUtils.js';
  * Hedefe doğru hareket, çarpma tespiti, AoE patlama efekti.
  */
 export default class Projectile {
-  constructor(scene, x, y, target, type, damage, blastRadius = 0) {
+  constructor(scene, x, y, target, type, damage, blastRadius = 0, isCrit = false) {
     this.scene = scene;
     this.target = target;
     this.type = type; // 'arrow' | 'cannonball'
     this.damage = damage;
     this.blastRadius = blastRadius;
+    this.isCrit = isCrit;
     this.alive = true;
 
     const pConfig = CONFIG.PROJECTILES[type];
@@ -71,7 +72,7 @@ export default class Projectile {
     } else {
       // Tekli hasar — ok
       if (this.target && this.target.alive && !this.target.dying) {
-        this.target.takeDamage(this.damage);
+        this.target.takeDamage(this.damage, true, this.isCrit);
       }
       this.hitEffect();
     }
@@ -86,7 +87,7 @@ export default class Projectile {
         // Uzaklığa bağlı hasar azalması: %50 – %100
         const falloff = 1 - (d / this.blastRadius) * 0.5;
         const finalDamage = Math.floor(this.damage * falloff);
-        enemy.takeDamage(finalDamage);
+        enemy.takeDamage(finalDamage, true, this.isCrit);
       }
     }
   }

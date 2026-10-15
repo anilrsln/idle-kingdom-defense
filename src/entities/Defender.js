@@ -39,6 +39,15 @@ export default class Defender {
     return base * (1 + bonus);
   }
 
+  /** Ateş başına hasar + kritik rulosu (mermi savunucuları için). */
+  rollDamage() {
+    let damage = this.getDamage();
+    const crit = CONFIG.COMBAT?.crit;
+    const isCrit = crit ? Math.random() < crit.chance : false;
+    if (isCrit) damage *= crit.multiplier;
+    return { damage, isCrit };
+  }
+
   getFireRate() {
     const l = this.getStateLevels();
     const stat = this.config.fireRate || this.config.reloadSpeed;

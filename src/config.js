@@ -41,6 +41,12 @@ export const CONFIG = {
     jumpWaveTarget: 10, // "wave'e atla" hedefi
   },
 
+  // Savaş: kritik vuruş + combo (kill-streak ödül çarpanı)
+  COMBAT: {
+    crit: { chance: 0.15, multiplier: 2.0 }, // mermi savunucuları (archer/cannon)
+    combo: { window: 2.5, bonusPerKill: 0.03, maxBonus: 1.0 }, // +%3/kill, cap +100%, 2.5sn pencere
+  },
+
   // Görsel efekt (juice) anahtarları
   FX: {
     screenShake: true,  // cannon patlaması / elite ölümünde kamera sarsıntısı

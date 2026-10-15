@@ -33,8 +33,8 @@ export default class Archer extends Defender {
   }
 
   fire(target) {
-    const dmg = this.getDamage();
-    const proj = new Projectile(this.scene, this.x, this.y, target, 'arrow', dmg);
+    const { damage, isCrit } = this.rollDamage();
+    const proj = new Projectile(this.scene, this.x, this.y, target, 'arrow', damage, 0, isCrit);
     this.projectiles.push(proj);
     this.scene.game.events.emit('sfx', 'archerFire');
 

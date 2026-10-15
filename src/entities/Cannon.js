@@ -51,9 +51,9 @@ export default class Cannon extends Defender {
   }
 
   fire(target) {
-    const dmg = this.getDamage();
+    const { damage, isCrit } = this.rollDamage();
     const radius = this.getBlastRadius();
-    const proj = new Projectile(this.scene, this.x, this.y, target, 'cannonball', dmg, radius);
+    const proj = new Projectile(this.scene, this.x, this.y, target, 'cannonball', damage, radius, isCrit);
     this.projectiles.push(proj);
     this.scene.game.events.emit('sfx', 'cannonFire');
 

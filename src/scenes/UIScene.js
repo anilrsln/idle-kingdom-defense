@@ -4,6 +4,7 @@ import { formatNumber } from '../utils/NumberFormatter.js';
 import UpgradeManager from '../systems/UpgradeManager.js';
 import EconomyManager from '../systems/EconomyManager.js';
 import PrestigeManager from '../systems/PrestigeManager.js';
+import ComboManager from '../systems/ComboManager.js';
 
 /**
  * UIScene — HUD overlay + alt yükseltme paneli.
@@ -23,6 +24,12 @@ export default class UIScene extends Phaser.Scene {
     this.enemyText = this.add.text(480, 5, '', this.textStyle(11, '#aaaaaa')).setDepth(101);
     this.prestigeText = this.add.text(560, 5, '', this.textStyle(10, '#9b59b6')).setDepth(101);
     this.fpsText = this.add.text(720, 5, '', this.textStyle(11, '#666666')).setDepth(101);
+
+    // Combo göstergesi (saha üstü, ortada)
+    this.comboText = this.add.text(CONFIG.CANVAS_WIDTH / 2, 48, '', {
+      fontSize: '20px', fontFamily: 'monospace', color: '#ff8800',
+      stroke: '#000', strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(120).setAlpha(0);
 
     // Wave progress bar (top bar altı)
     this.waveProgressBg = this.add.rectangle(CONFIG.CANVAS_WIDTH / 2, 31, CONFIG.CANVAS_WIDTH, 3, 0x333333, 0.6).setDepth(100);
@@ -422,6 +429,16 @@ export default class UIScene extends Phaser.Scene {
       this.prestigeText.setText('');
     }
     this.fpsText.setText(`${Math.round(this.game.loop.actualFps)} FPS`);
+
+    // Combo göstergesi — 2+ combo'da görünür, pencere azaldıkça soluklaşır
+    const combo = ComboManager.getCombo();
+    if (combo >= 2) {
+      const mult = ComboManager.getMultiplier();
+      this.comboText.setText(`x${combo} COMBO  (+${Math.round((mult - 1) * 100)}%)`);
+      this.comboText.setAlpha(0.35 + 0.65 * ComboManager.getTimerFraction());
+    } else {
+      this.comboText.setAlpha(0);
+    }
 
     // Flash efektleri
     if (this.expFlashTimer > 0) {

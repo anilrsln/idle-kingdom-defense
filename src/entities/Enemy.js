@@ -3,6 +3,7 @@ import GameState from '../state/GameState.js';
 import { calculateEnemyHP, calculateEnemyEXP } from '../utils/MathUtils.js';
 import ConquestManager from '../systems/ConquestManager.js';
 import EconomyManager from '../systems/EconomyManager.js';
+import ComboManager from '../systems/ComboManager.js';
 
 /** Enemy — Sağdan spawn, sola yürü, lava veya savunucu ölümü. */
 export default class Enemy {
@@ -98,7 +99,7 @@ export default class Enemy {
     });
   }
 
-  takeDamage(amount, flash = true) {
+  takeDamage(amount, flash = true, isCrit = false) {
     if (!this.alive || this.dying) return false;
     // Kalkan varsa önce onu emer, kalan hasar HP'ye geçer
     if (this.currentShield > 0) {
@@ -112,9 +113,21 @@ export default class Enemy {
     }
     if (amount > 0) this.currentHP -= amount;
     this.updateHPBar();
+    // Kritik vuruş: turuncu flash + "CRIT" bildirimi
+    if (isCrit && this.sprite) {
+      this._critFlash();
+      this.scene.game.events.emit('crit-hit', { x: this.sprite.x, y: this.sprite.y, damage: Math.floor(amount) });
+    }
     if (this.currentHP <= 0) { this.currentHP = 0; this.dieToDefender(); return true; }
-    if (flash) this._flash();
+    if (flash && !isCrit) this._flash();
     return false;
+  }
+
+  /** Kritik vuruşta turuncu flash. */
+  _critFlash() {
+    if (!this.sprite) return;
+    this.sprite.setTintFill(0xff8800);
+    this.scene.time.delayedCall(70, () => { if (this.sprite) this.sprite.clearTint(); });
   }
 
   /** Kalkan kırıldığında kısa cyan flash. */
@@ -138,9 +151,12 @@ export default class Enemy {
   dieToDefender() {
     if (this.dying) return;
     this.dying = true; this.alive = false;
+    // Combo: savunucu ile öldürmek combo'yu besler ve ödülü çarpar
+    ComboManager.registerKill();
+    const comboMult = ComboManager.getMultiplier();
     const dbg = CONFIG.DEBUG?.gainMultiplier ?? 1;
-    const expMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('expMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('expBoost');
-    const foodMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('foodMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('foodBoost');
+    const expMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('expMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('expBoost') * comboMult;
+    const foodMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('foodMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('foodBoost') * comboMult;
     const exp = this.expReward * expMult;
     const food = this.foodReward * foodMult;
     this._grantRewards(exp, food, 'defender');
