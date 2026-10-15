@@ -1,12 +1,32 @@
-import GameState from '../state/GameState.js';
+import GameState, { resetAll } from '../state/GameState.js';
 import { CONFIG } from '../config.js';
 import ConquestManager from './ConquestManager.js';
 
 /**
- * SaveManager — localStorage otomatik kayıt/yükleme.
+ * SaveManager — localStorage otomatik kayıt/yükleme + sürüm migration'ı.
  * 30 saniyede bir oto-kayıt, beforeunload'da son kayıt.
  */
 const SAVE_KEY = 'idle-kingdom-defense-save';
+
+/**
+ * Save şema migration'ları. Anahtar = kaynak sürüm; fonksiyon o sürümdeki
+ * gameState'i BİR SONRAKİ sürüme yükseltir ve döndürür.
+ *
+ * Şemayı (GameState şeklini) değiştirince yapılacak:
+ *   1) CONFIG.SAVE_VERSION'ı +1 artır
+ *   2) buraya eski sürüm numarasıyla bir migration adımı ekle
+ * Böylece eski kayıtlar sessizce bozulmak yerine güncel şekle taşınır.
+ */
+const MIGRATIONS = {
+  // v1 → v2: bu oturumda eklenen alanları garanti et
+  1: (gs) => {
+    if (!gs.settings) gs.settings = { soundEnabled: true, masterVolume: 0.5 };
+    if (!gs.achievements) gs.achievements = { unlocked: [] };
+    if (!gs.stats) gs.stats = {};
+    if (gs.stats.bossesKilled == null) gs.stats.bossesKilled = 0;
+    return gs;
+  },
+};
 
 const SaveManager = {
   _intervalId: null,
@@ -15,8 +35,9 @@ const SaveManager = {
   save() {
     try {
       GameState.meta.lastSaveTime = Date.now();
+      GameState.meta.saveVersion = CONFIG.SAVE_VERSION;
       const data = {
-        version: GameState.meta.saveVersion,
+        version: CONFIG.SAVE_VERSION, // şema sürümü — yüklerken migration için
         timestamp: Date.now(),
         gameState: JSON.parse(JSON.stringify(GameState)),
       };
@@ -51,9 +72,25 @@ const SaveManager = {
     }
   },
 
-  /** Kaydedilmiş state'i GameState'e uygula. */
+  /** Eski save'i güncel şemaya taşır (sürüm migration'ı). */
+  _migrate(data) {
+    let v = Number(data.version) || 1;
+    let gs = data.gameState || {};
+    while (v < CONFIG.SAVE_VERSION) {
+      const step = MIGRATIONS[v];
+      if (step) gs = step(gs) || gs;
+      v++;
+    }
+    data.gameState = gs;
+    data.version = v;
+    return data;
+  },
+
+  /** Kaydedilmiş state'i güncel şemaya taşıyıp GameState'e uygular. */
   applyLoad(savedData) {
-    const gs = savedData.gameState;
+    try {
+      const migrated = this._migrate(savedData);
+      const gs = migrated.gameState || {};
     // Resources
     GameState.resources.exp = gs.resources?.exp || 0;
     GameState.resources.food = gs.resources?.food || 0;
@@ -95,6 +132,12 @@ const SaveManager = {
 
     // Conquest bonuslarını yeniden uygula
     ConquestManager.reapplyAllEffects();
+      return true;
+    } catch (e) {
+      console.warn('Load/migrate başarısız — temiz başlangıç:', e);
+      resetAll(GameState);
+      return false;
+    }
   },
 
   /** Otomatik kayıt başlat. */
