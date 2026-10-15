@@ -2,6 +2,7 @@ import { CONFIG } from '../config.js';
 import Defender from './Defender.js';
 import Projectile from './Projectile.js';
 import { calculateValue } from '../utils/MathUtils.js';
+import AssetProvider from '../systems/AssetProvider.js';
 
 /**
  * Cannon — AoE gülle atan savunucu.
@@ -12,6 +13,7 @@ export default class Cannon extends Defender {
     super(scene, 'cannon', x, y);
     this.index = index;
     this.sprite = scene.add.image(x, y, 'defender-cannon').setDepth(5);
+    AssetProvider.applySprite(this.sprite, 'defender-cannon');
     this.projectiles = [];
   }
 

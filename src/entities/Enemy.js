@@ -4,6 +4,7 @@ import { calculateEnemyHP, calculateEnemyEXP } from '../utils/MathUtils.js';
 import ConquestManager from '../systems/ConquestManager.js';
 import EconomyManager from '../systems/EconomyManager.js';
 import ComboManager from '../systems/ComboManager.js';
+import AssetProvider from '../systems/AssetProvider.js';
 
 /** Enemy — Sağdan spawn, sola yürü, lava veya savunucu ölümü. */
 export default class Enemy {
@@ -41,6 +42,7 @@ export default class Enemy {
 
     const spawnX = options.spawnX ?? CONFIG.SPAWN_X;
     this.sprite = scene.add.image(spawnX, laneY, `enemy-${type}`).setDepth(10).setAlpha(0);
+    AssetProvider.applySprite(this.sprite, `enemy-${type}`);
     if (options.scale) this.sprite.setScale(options.scale);
     scene.tweens.add({ targets: this.sprite, alpha: 1, duration: 200 });
 

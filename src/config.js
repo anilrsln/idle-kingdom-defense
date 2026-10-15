@@ -148,27 +148,27 @@ export const CONFIG = {
   // oynanışa dokunmadan görseli değiştirir.
   // ─────────────────────────────────────────────────────────────
   ASSETS: {
-    // Düşmanlar
-    'enemy-skeleton':    { shape: 'circle', size: 8,  color: 0xcccccc },
-    'enemy-armored':     { shape: 'circle', size: 10, color: 0x888888 },
-    'enemy-fast':        { shape: 'circle', size: 7,  color: 0xff6666 },
-    'enemy-foodCarrier': { shape: 'circle', size: 9,  color: 0x66ff66 },
-    'enemy-elite':       { shape: 'circle', size: 12, color: 0xffaa00 },
-    'enemy-shield':      { shape: 'rect',   width: 18, height: 18, color: 0x6688cc }, // kare silüet = kalkanlı
-    'enemy-splitter':    { shape: 'circle', size: 11, color: 0xcc66ff }, // mor blob = bölünen
-    'enemy-healer':      { shape: 'triangle', size: 15, color: 0x33cc99 }, // yeşil üçgen = şifacı
-    'enemy-boss_tank':      { shape: 'rect',     width: 44, height: 44, color: 0xcc3333 }, // kırmızı kare = tank
-    'enemy-boss_berserker': { shape: 'triangle', size: 28,             color: 0xff6600 }, // turuncu üçgen = berserker
-    'enemy-boss_shaman':    { shape: 'circle',   size: 26,             color: 0xaa44ff }, // mor daire = şaman
-    'enemy-boss_splitter':  { shape: 'circle',   size: 30,             color: 0xff44cc }, // pembe daire = splitter boss
-    'enemy-boss_armored':   { shape: 'rect',     width: 48, height: 48, color: 0x778899 }, // gri kare = zırhlı boss
-    // Savunucular
-    'defender-laser':    { shape: 'rect', width: 24, height: 32, color: 0x00ffff },
-    'defender-archer':   { shape: 'triangle', size: 16, color: 0x7cfc00 },
-    'defender-cannon':   { shape: 'rect', width: 20, height: 20, color: 0xff8c00 },
-    'defender-frost':    { shape: 'circle', size: 14, color: 0x88ccff },  // açık mavi daire
-    'defender-catapult': { shape: 'rect', width: 26, height: 22, color: 0xaa7744 }, // kahve kare = ahşap mancınık
-    // Mermiler
+    // Enemies — Red Units + Black Units for bosses
+    'enemy-skeleton':    { sprite: 'assets/units/red-pawn-idle.png',       frames: { frameWidth: 192, frameHeight: 192 } },
+    'enemy-armored':     { sprite: 'assets/units/red-warrior-idle.png',    frames: { frameWidth: 192, frameHeight: 192 } },
+    'enemy-fast':        { sprite: 'assets/units/red-archer-idle.png',     frames: { frameWidth: 192, frameHeight: 192 } },
+    'enemy-foodCarrier': { sprite: 'assets/units/red-pawn-meat.png',       frames: { frameWidth: 192, frameHeight: 192 } },
+    'enemy-elite':       { sprite: 'assets/units/red-lancer-idle.png',     frames: { frameWidth: 320, frameHeight: 320 } },
+    'enemy-shield':      { sprite: 'assets/units/red-warrior-guard.png',   frames: { frameWidth: 192, frameHeight: 192 } },
+    'enemy-splitter':    { sprite: 'assets/units/red-monk-idle.png',       frames: { frameWidth: 192, frameHeight: 192 } },
+    'enemy-healer':      { sprite: 'assets/units/yellow-monk-idle.png',    frames: { frameWidth: 192, frameHeight: 192 } },
+    'enemy-boss_tank':      { sprite: 'assets/units/black-warrior-idle.png',  frames: { frameWidth: 192, frameHeight: 192 } },
+    'enemy-boss_berserker': { sprite: 'assets/units/black-lancer-idle.png',   frames: { frameWidth: 320, frameHeight: 320 } },
+    'enemy-boss_shaman':    { sprite: 'assets/units/black-monk-idle.png',     frames: { frameWidth: 192, frameHeight: 192 } },
+    'enemy-boss_splitter':  { sprite: 'assets/units/purple-monk-idle.png',    frames: { frameWidth: 192, frameHeight: 192 } },
+    'enemy-boss_armored':   { sprite: 'assets/units/black-pawn-idle.png',     frames: { frameWidth: 192, frameHeight: 192 } },
+    // Defenders — Blue Units
+    'defender-laser':    { sprite: 'assets/units/blue-warrior-idle.png',   frames: { frameWidth: 192, frameHeight: 192 } },
+    'defender-archer':   { sprite: 'assets/units/blue-archer-idle.png',    frames: { frameWidth: 192, frameHeight: 192 } },
+    'defender-cannon':   { sprite: 'assets/units/blue-lancer-idle.png',    frames: { frameWidth: 320, frameHeight: 320 } },
+    'defender-frost':    { sprite: 'assets/units/blue-monk-idle.png',      frames: { frameWidth: 192, frameHeight: 192 } },
+    'defender-catapult': { sprite: 'assets/units/blue-pawn-idle.png',      frames: { frameWidth: 192, frameHeight: 192 } },
+    // Projectiles — keep geometric for now (tiny, fast-moving objects)
     'projectile-arrow':      { shape: 'circle', size: 3, color: 0x7cfc00 },
     'projectile-cannonball': { shape: 'circle', size: 5, color: 0xff8c00 },
     'projectile-frostbolt':  { shape: 'circle', size: 4, color: 0x88ccff },

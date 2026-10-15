@@ -1,6 +1,7 @@
 import { CONFIG } from '../config.js';
 import Defender from './Defender.js';
 import ConquestManager from '../systems/ConquestManager.js';
+import AssetProvider from '../systems/AssetProvider.js';
 
 /**
  * LaserMonument — Sürekli lazer ışını, her zaman sabit konumda.
@@ -10,6 +11,7 @@ export default class LaserMonument extends Defender {
   constructor(scene, x, y) {
     super(scene, 'laser', x, y);
     this.sprite = scene.add.image(x, y, 'defender-laser').setDepth(5);
+    AssetProvider.applySprite(this.sprite, 'defender-laser');
     this.laserGraphics = scene.add.graphics().setDepth(6);
     this.glowPhase = 0;
     this.damageAccumulator = 0;

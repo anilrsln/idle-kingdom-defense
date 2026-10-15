@@ -2,6 +2,7 @@ import { CONFIG } from '../config.js';
 import Defender from './Defender.js';
 import Projectile from './Projectile.js';
 import ConquestManager from '../systems/ConquestManager.js';
+import AssetProvider from '../systems/AssetProvider.js';
 
 /**
  * Archer — Ok atan savunucu.
@@ -12,6 +13,7 @@ export default class Archer extends Defender {
     super(scene, 'archer', x, y);
     this.index = index;
     this.sprite = scene.add.image(x, y, 'defender-archer').setDepth(5);
+    AssetProvider.applySprite(this.sprite, 'defender-archer');
     this.projectiles = [];
     this._shotCount = 0; // Archer Mastery splash sayacı
   }

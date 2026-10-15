@@ -1,6 +1,7 @@
 import { CONFIG } from '../config.js';
 import Defender from './Defender.js';
 import Projectile from './Projectile.js';
+import AssetProvider from '../systems/AssetProvider.js';
 
 /**
  * FrostTower — Buz boltu atan savunucu.
@@ -11,6 +12,7 @@ export default class FrostTower extends Defender {
     super(scene, 'frost', x, y);
     this.index = index;
     this.sprite = scene.add.image(x, y, 'defender-frost').setDepth(5);
+    AssetProvider.applySprite(this.sprite, 'defender-frost');
     this.projectiles = [];
   }
 

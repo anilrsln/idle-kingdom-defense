@@ -24,7 +24,7 @@ const config = {
   },
   scene: [BootScene, GameScene, UIScene, ConquestScene, MenuScene],
   physics: { default: 'arcade', arcade: { debug: false } },
-  render: { pixelArt: false, antialias: true },
+  render: { pixelArt: true, antialias: false },
 };
 
 const game = new Phaser.Game(config);

@@ -2,6 +2,7 @@ import { CONFIG } from '../config.js';
 import Defender from './Defender.js';
 import Projectile from './Projectile.js';
 import { calculateValue } from '../utils/MathUtils.js';
+import AssetProvider from '../systems/AssetProvider.js';
 
 /**
  * Catapult — Uzun menzilli AoE taş atan savunucu.
@@ -13,6 +14,7 @@ export default class Catapult extends Defender {
     super(scene, 'catapult', x, y);
     this.index = index;
     this.sprite = scene.add.image(x, y, 'defender-catapult').setDepth(5);
+    AssetProvider.applySprite(this.sprite, 'defender-catapult');
     this.projectiles = [];
   }
 
