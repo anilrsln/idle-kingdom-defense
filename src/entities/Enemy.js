@@ -41,8 +41,11 @@ export default class Enemy {
     if (options.scale) this.sprite.setScale(options.scale);
     scene.tweens.add({ targets: this.sprite, alpha: 1, duration: 200 });
 
-    this.hpBarWidth = 20;
-    this.hpBarHeight = 3;
+    // Boss: daha geniş ve sürekli görünen HP bar
+    this.hpBarWidth = options.boss ? 60 : 20;
+    this.hpBarHeight = options.boss ? 5 : 3;
+    this._barYOffset = options.boss ? 34 : 14;
+    this.alwaysShowBar = options.boss ?? false;
     this.hpBar = scene.add.graphics().setDepth(11);
   }
 
@@ -192,11 +195,11 @@ export default class Enemy {
     this.hpBar.clear();
     if (!this.alive || !this.sprite) return;
     const hasShield = this.maxShield > 0 && this.currentShield > 0;
-    // Tam can ve kalkan yoksa barı gizle
-    if (!hasShield && this.currentHP >= this.maxHP) return;
+    // Tam can ve kalkan yoksa barı gizle (boss her zaman gösterir)
+    if (!hasShield && this.currentHP >= this.maxHP && !this.alwaysShowBar) return;
 
     const bx = this.sprite.x - this.hpBarWidth / 2;
-    let by = this.sprite.y - 14;
+    let by = this.sprite.y - (this._barYOffset ?? 14);
 
     // Kalkan barı (üstte, cyan)
     if (hasShield) {

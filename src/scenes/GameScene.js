@@ -39,6 +39,7 @@ export default class GameScene extends Phaser.Scene {
     // Event dinleyicileri
     this.events.on('enemy-killed', this.onEnemyKilled, this);
     this.events.on('wave-complete', this.onWaveComplete, this);
+    this.events.on('boss-wave', this.onBossWave, this);
 
     // Dev panel: belirli bir wave'e atla
     this.game.events.off('dev-jump-wave', this.onDevJumpWave, this);
@@ -248,10 +249,20 @@ export default class GameScene extends Phaser.Scene {
     }
     // Ölüm parçacık efekti
     this.spawnDeathParticles(data.x, data.y, data.killedBy);
-    // Elite ölümünde kamera sarsıntısı
-    if (data.type === 'elite' && CONFIG.FX?.screenShake) {
-      this.cameras.main.shake(180, 0.008);
+    // Elite / boss ölümünde kamera sarsıntısı (boss daha güçlü)
+    if (CONFIG.FX?.screenShake && (data.type === 'elite' || data.type === 'boss')) {
+      const big = data.type === 'boss';
+      this.cameras.main.shake(big ? 350 : 180, big ? 0.016 : 0.008);
     }
+    if (data.type === 'boss') {
+      this.showFloatingText('★ BOSS DEFEATED! ★', CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2 - 40, 0xffd700, 26, 1800);
+    }
+  }
+
+  /** Boss dalgası girişinde duyuru. */
+  onBossWave(data) {
+    this.showFloatingText(`⚠ BOSS — Wave ${data.wave}`, CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2 - 50, 0xff4444, 26, 1800);
+    this.game.events.emit('sfx', 'prestige');
   }
 
   /** Basit ölüm parçacık efekti. */

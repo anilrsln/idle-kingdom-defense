@@ -104,6 +104,7 @@ export const CONFIG = {
     'enemy-shield':      { shape: 'rect',   width: 18, height: 18, color: 0x6688cc }, // kare silüet = kalkanlı
     'enemy-splitter':    { shape: 'circle', size: 11, color: 0xcc66ff }, // mor blob = bölünen
     'enemy-healer':      { shape: 'triangle', size: 15, color: 0x33cc99 }, // yeşil üçgen = şifacı
+    'enemy-boss':        { shape: 'circle', size: 24, color: 0xcc3333 },   // büyük kırmızı daire = boss
     // Savunucular
     'defender-laser':    { shape: 'rect', width: 24, height: 32, color: 0x00ffff },
     'defender-archer':   { shape: 'triangle', size: 16, color: 0x7cfc00 },
@@ -128,6 +129,8 @@ export const CONFIG = {
     // Healer: her 'interval' sn'de menzildeki (kendisi hariç) düşmanları maxHP'nin fraction'ı kadar iyileştirir
     healer:      { name: 'Healer',           hp: 28,  speed: 24, exp: 7,  food: 1, color: 0x33cc99,
                    heal: { fraction: 0.12, radius: 90, interval: 1.2 } },
+    // Boss: her bossEvery wave'de tek, çok yüksek HP, yavaş, büyük ödül (random havuzda değil)
+    boss:        { name: 'Boss',             hp: 800, speed: 14, exp: 120, food: 20, color: 0xcc3333 },
   },
 
   // Dalga sistemi
@@ -138,6 +141,7 @@ export const CONFIG = {
     timeBetweenWaves: 2000,
     hpScaling: 1.08,
     expScaling: 1.05,
+    bossEvery: 10, // her 10 wave'de boss dalgası
     typeUnlocks: { skeleton: 1, armored: 5, fast: 8, foodCarrier: 3, elite: 15, shield: 10, splitter: 12, healer: 14 },
   },
 

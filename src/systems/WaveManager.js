@@ -18,11 +18,17 @@ export default class WaveManager {
     this.calculateWaveEnemies();
   }
 
+  /** Bu wave bir boss dalgası mı? (her CONFIG.WAVES.bossEvery katında) */
+  isBossWave(wave = GameState.wave.current) {
+    const every = CONFIG.WAVES.bossEvery || 0;
+    return every > 0 && wave % every === 0;
+  }
+
   calculateWaveEnemies() {
     const wave = GameState.wave.current;
-    GameState.wave.enemiesInWave = Math.floor(
-      CONFIG.WAVES.baseEnemiesPerWave + (wave - 1) * CONFIG.WAVES.enemiesPerWaveGrowth
-    );
+    GameState.wave.enemiesInWave = this.isBossWave(wave)
+      ? 1 // boss dalgasında tek büyük düşman
+      : Math.floor(CONFIG.WAVES.baseEnemiesPerWave + (wave - 1) * CONFIG.WAVES.enemiesPerWaveGrowth);
     GameState.wave.enemiesSpawned = 0;
     GameState.wave.enemiesKilled = 0;
   }
@@ -49,6 +55,14 @@ export default class WaveManager {
   }
 
   spawnEnemy() {
+    // Boss dalgası: orta şeritte tek büyük boss, girişinde duyuru
+    if (this.isBossWave()) {
+      const boss = new Enemy(this.scene, 'boss', GameState.wave.current, this.lanes[1], { boss: true });
+      this.enemies.push(boss);
+      GameState.wave.enemiesSpawned++;
+      this.scene.events.emit('boss-wave', { wave: GameState.wave.current });
+      return;
+    }
     const type = this.selectEnemyType();
     const laneY = this.lanes[Math.floor(Math.random() * this.lanes.length)];
     const enemy = new Enemy(this.scene, type, GameState.wave.current, laneY);
