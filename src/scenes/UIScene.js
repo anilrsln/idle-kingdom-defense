@@ -2,6 +2,7 @@ import { CONFIG } from '../config.js';
 import GameState from '../state/GameState.js';
 import { formatNumber } from '../utils/NumberFormatter.js';
 import UpgradeManager from '../systems/UpgradeManager.js';
+import EconomyManager from '../systems/EconomyManager.js';
 import PrestigeManager from '../systems/PrestigeManager.js';
 
 /**
@@ -76,7 +77,7 @@ export default class UIScene extends Phaser.Scene {
     this.add.rectangle(CONFIG.CANVAS_WIDTH / 2, this.panelY, CONFIG.CANVAS_WIDTH, 2, CONFIG.COLORS.UI_ACCENT, 0.5).setDepth(101);
 
     // Sekmeler
-    this.tabs = ['laser', 'archer', 'cannon'];
+    this.tabs = ['laser', 'archer', 'cannon', 'economy'];
     this.activeTab = 'laser';
     this.tabButtons = [];
     this.createTabs();
@@ -130,7 +131,7 @@ export default class UIScene extends Phaser.Scene {
 
   // ═══════ SEKMELER ═══════
   createTabs() {
-    const tabNames = { laser: 'Laser', archer: 'Archer', cannon: 'Cannon' };
+    const tabNames = { laser: 'Laser', archer: 'Archer', cannon: 'Cannon', economy: 'Ekonomi' };
     const tabWidth = 80, tabHeight = 22, startX = 10, tabY = this.panelY + 5;
 
     this.tabs.forEach((type, i) => {
@@ -164,6 +165,7 @@ export default class UIScene extends Phaser.Scene {
 
   renderUpgradePanel() {
     this.clearUpgradeElements();
+    if (this.activeTab === 'economy') { this.renderEconomyPanel(); return; }
     const info = UpgradeManager.getDefenderUpgradeInfo(this.activeTab);
     const startX = 10, startY = this.panelY + 32;
 
@@ -241,6 +243,45 @@ export default class UIScene extends Phaser.Scene {
       ).setOrigin(0.5).setDepth(102);
       this.upgradeElements.push(countText);
     }
+  }
+
+  /** Ekonomi sekmesi: EXP Boost / Food Boost upgrade'leri. */
+  renderEconomyPanel() {
+    const startX = 10, startY = this.panelY + 32;
+    const keys = Object.keys(CONFIG.ECONOMY_UPGRADES);
+    const btnWidth = Math.min(180, (CONFIG.CANVAS_WIDTH - 20) / keys.length - 8);
+
+    keys.forEach((key, i) => {
+      const cfg = CONFIG.ECONOMY_UPGRADES[key];
+      const level = GameState.economy?.[key]?.level || 0;
+      const curMult = EconomyManager.getEconomyBoostMultiplier(key);
+      const nextMult = 1 + (level + 1) * cfg.bonusPerLevel;
+      const cost = EconomyManager.getEconomyUpgradeCost(key);
+      const canAfford = EconomyManager.canAffordEconomyUpgrade(key);
+
+      const x = startX + i * (btnWidth + 8);
+      const y = startY;
+
+      const lbl = this.add.text(x, y, `${cfg.name} Lv.${level}`, this.textStyle(10, '#cccccc')).setDepth(102);
+      const valText = this.add.text(x, y + 14, `${curMult.toFixed(2)}x → ${nextMult.toFixed(2)}x`, this.textStyle(9, '#888888')).setDepth(102);
+
+      const btnX = x + btnWidth / 2, btnY = y + 38;
+      const color = canAfford ? CONFIG.COLORS.UI_BUTTON : CONFIG.COLORS.UI_BUTTON_DISABLED;
+      const bg = this.add.rectangle(btnX, btnY, btnWidth, 22, color, 1).setDepth(102).setInteractive({ useHandCursor: true });
+      const costLabel = this.add.text(btnX, btnY, `${formatNumber(cost)} EXP`, this.textStyle(10, canAfford ? '#ffd700' : '#666666')).setOrigin(0.5).setDepth(103);
+
+      bg.on('pointerdown', () => {
+        if (EconomyManager.purchaseEconomyUpgrade(key)) {
+          this.flashButton(bg); this.panelDirty = true; this.game.events.emit('sfx', 'upgrade');
+        } else {
+          this.game.events.emit('sfx', 'uiDenied');
+        }
+      });
+      bg.on('pointerover', () => { if (canAfford) bg.setFillStyle(CONFIG.COLORS.UI_BUTTON_HOVER); });
+      bg.on('pointerout', () => bg.setFillStyle(canAfford ? CONFIG.COLORS.UI_BUTTON : CONFIG.COLORS.UI_BUTTON_DISABLED));
+
+      this.upgradeElements.push(lbl, valText, bg, costLabel);
+    });
   }
 
   createHireButton(x, y, info) {

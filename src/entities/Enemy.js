@@ -2,6 +2,7 @@ import { CONFIG } from '../config.js';
 import GameState from '../state/GameState.js';
 import { calculateEnemyHP, calculateEnemyEXP } from '../utils/MathUtils.js';
 import ConquestManager from '../systems/ConquestManager.js';
+import EconomyManager from '../systems/EconomyManager.js';
 
 /** Enemy — Sağdan spawn, sola yürü, lava veya savunucu ölümü. */
 export default class Enemy {
@@ -138,8 +139,8 @@ export default class Enemy {
     if (this.dying) return;
     this.dying = true; this.alive = false;
     const dbg = CONFIG.DEBUG?.gainMultiplier ?? 1;
-    const expMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('expMultiplier') * dbg;
-    const foodMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('foodMultiplier') * dbg;
+    const expMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('expMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('expBoost');
+    const foodMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('foodMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('foodBoost');
     const exp = this.expReward * expMult;
     const food = this.foodReward * foodMult;
     this._grantRewards(exp, food, 'defender');
@@ -163,8 +164,8 @@ export default class Enemy {
     if (this.dying) return;
     this.dying = true; this.alive = false;
     const dbg = CONFIG.DEBUG?.gainMultiplier ?? 1;
-    const expMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('expMultiplier') * dbg;
-    const foodMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('foodMultiplier') * dbg;
+    const expMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('expMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('expBoost');
+    const foodMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('foodMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('foodBoost');
     const exp = Math.floor(this.expReward * 0.5 * expMult);
     const food = Math.floor(this.foodReward * 0.5 * foodMult);
     this._grantRewards(exp, food, 'lava');

@@ -98,6 +98,38 @@ const EconomyManager = {
     const cost = this.getHireCost(defenderType);
     return GameState.resources.food >= cost;
   },
+
+  // ═══════════════ Ekonomi upgrade'leri (EXP/Food kazanç çarpanı) ═══════════════
+
+  /** 'expBoost' | 'foodBoost' için mevcut çarpan (1 + level × bonus). */
+  getEconomyBoostMultiplier(key) {
+    const cfg = CONFIG.ECONOMY_UPGRADES[key];
+    if (!cfg) return 1;
+    const level = GameState.economy?.[key]?.level || 0;
+    return 1 + level * cfg.bonusPerLevel;
+  },
+
+  /** Bir sonraki ekonomi upgrade'inin maliyeti (EXP). */
+  getEconomyUpgradeCost(key) {
+    const cfg = CONFIG.ECONOMY_UPGRADES[key];
+    if (!cfg) return Infinity;
+    const level = GameState.economy?.[key]?.level || 0;
+    return Math.floor(cfg.baseCost * Math.pow(cfg.costMultiplier, level));
+  },
+
+  canAffordEconomyUpgrade(key) {
+    return GameState.resources.exp >= this.getEconomyUpgradeCost(key);
+  },
+
+  /** Ekonomi upgrade satın al (EXP ile). */
+  purchaseEconomyUpgrade(key) {
+    const cost = this.getEconomyUpgradeCost(key);
+    if (GameState.resources.exp < cost) return false;
+    GameState.resources.exp -= cost;
+    if (!GameState.economy[key]) GameState.economy[key] = { level: 0 };
+    GameState.economy[key].level += 1;
+    return true;
+  },
 };
 
 export default EconomyManager;

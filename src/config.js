@@ -18,7 +18,7 @@ export const CONFIG = {
   // Kaydetme
   SAVE_KEY: 'idle-kingdom-defense-save',
   SAVE_INTERVAL: 30000,
-  SAVE_VERSION: 3, // save şema sürümü — değişince artır + SaveManager'a migration ekle
+  SAVE_VERSION: 4, // save şema sürümü — değişince artır + SaveManager'a migration ekle
 
   // Idle sistemi
   IDLE_EFFICIENCY: 0.5,
@@ -26,6 +26,13 @@ export const CONFIG = {
 
   // Upgrade maliyet çarpanı
   UPGRADE_COST_MULTIPLIER: 1.15,
+
+  // Ekonomi upgrade'leri (run içi, EXP ile alınır; prestige/yeni oyunda sıfırlanır)
+  // Çarpan = 1 + level × bonusPerLevel; maliyet = baseCost × costMultiplier^level
+  ECONOMY_UPGRADES: {
+    expBoost:  { name: 'EXP Boost',  bonusPerLevel: 0.10, baseCost: 100, costMultiplier: 1.25 },
+    foodBoost: { name: 'Food Boost', bonusPerLevel: 0.10, baseCost: 150, costMultiplier: 1.30 },
+  },
 
   // Debug / runtime tuning (yalnızca ?dev modunda dev panel üzerinden değişir)
   DEBUG: {

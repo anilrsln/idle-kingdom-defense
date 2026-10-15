@@ -33,6 +33,11 @@ const MIGRATIONS = {
     if (gs.meta.foodRate == null) gs.meta.foodRate = 0;
     return gs;
   },
+  // v3 → v4: ekonomi upgrade seviyeleri
+  3: (gs) => {
+    if (!gs.economy) gs.economy = { expBoost: { level: 0 }, foodBoost: { level: 0 } };
+    return gs;
+  },
 };
 
 const SaveManager = {
