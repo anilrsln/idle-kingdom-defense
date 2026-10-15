@@ -40,6 +40,23 @@ export const CONFIG = {
     hitFlash: true,     // mermi isabetinde düşman beyaz flash
   },
 
+  // Başarımlar — check(g) runtime'da GameState (g) üzerinden değerlendirilir
+  ACHIEVEMENTS: {
+    firstKill:     { name: "İlk Kan",        desc: "İlk düşmanı öldür",        check: (g) => g.stats.totalEnemiesKilled >= 1 },
+    kill100:       { name: "Temizlikçi",     desc: "100 düşman öldür",         check: (g) => g.stats.totalEnemiesKilled >= 100 },
+    kill1000:      { name: "Kıyım",          desc: "1.000 düşman öldür",       check: (g) => g.stats.totalEnemiesKilled >= 1000 },
+    wave25:        { name: "Dayanıklı",      desc: "25. dalgaya ulaş",         check: (g) => g.wave.current >= 25 },
+    wave50:        { name: "Kuşatma",        desc: "50. dalgaya ulaş",         check: (g) => g.wave.current >= 50 },
+    wave100:       { name: "Efsane",         desc: "100. dalgaya ulaş",        check: (g) => g.wave.current >= 100 },
+    firstBoss:     { name: "Dev Avcısı",     desc: "İlk boss'u yen",           check: (g) => g.stats.bossesKilled >= 1 },
+    firstPrestige: { name: "Yeniden Doğuş",  desc: "İlk prestige'i yap",       check: (g) => g.prestige.count >= 1 },
+    prestige5:     { name: "Ölümsüz",        desc: "5 kez prestige yap",       check: (g) => g.prestige.count >= 5 },
+    cannonUnlock:  { name: "Topçu",          desc: "Cannon'u aç",              check: (g) => g.defenders.cannon.canBeHired === true },
+    archerFull:    { name: "Okçu Ordusu",    desc: "Maksimum okçuya ulaş",     check: (g) => g.defenders.archer.count >= g.defenders.archer.maxCount },
+    allNodes:      { name: "Fetih",          desc: "Tüm Conquest node'larını aç", check: (g) => g.conquestMap.unlockedNodes.length >= Object.keys(CONFIG.CONQUEST_NODES).length },
+    richExp:       { name: "Zengin",         desc: "1M toplam EXP kazan",      check: (g) => g.stats.totalExpEarned >= 1e6 },
+  },
+
   // Renk paleti
   COLORS: {
     WALL: 0x4a4a6a, WALL_TOP: 0x5a5a7a,

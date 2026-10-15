@@ -3,6 +3,7 @@ import GameState, { resetAll } from '../state/GameState.js';
 import SaveManager from '../systems/SaveManager.js';
 import IdleManager from '../systems/IdleManager.js';
 import SoundManager from '../systems/SoundManager.js';
+import AchievementManager from '../systems/AchievementManager.js';
 
 /**
  * MenuScene — Ana Menü (açılış) + Ayarlar/Pause (oyun içi).
@@ -69,6 +70,12 @@ export default class MenuScene extends Phaser.Scene {
       });
       specs.push({ label: '✦  Yeni Oyun', color: CONFIG.COLORS.UI_BUTTON, onClick: () => this.newGame() });
     }
+
+    // Başarımlar (her iki modda)
+    specs.push({
+      label: `🏆  Başarımlar (${AchievementManager.unlockedCount()}/${AchievementManager.total()})`,
+      color: CONFIG.COLORS.UI_BUTTON, onClick: () => this.openAchievements(),
+    });
 
     // Ses toggle (her iki modda)
     specs.push({ label: this.soundLabel(), color: 0x2a2a4a, onClick: () => this.toggleSound(), isSound: true });
@@ -186,6 +193,44 @@ export default class MenuScene extends Phaser.Scene {
   }
 
   // ═══════════════ Onay / Toast ═══════════════
+
+  _ts(size, color) {
+    return { fontSize: `${size}px`, fontFamily: 'monospace', color, stroke: '#000', strokeThickness: 1 };
+  }
+
+  /** Başarım listesi paneli. */
+  openAchievements() {
+    if (this.achvPanel) return;
+    const cx = this.cx, cy = CONFIG.CANVAS_HEIGHT / 2;
+    const w = 420, h = 448;
+    const top = cy - h / 2;
+
+    const bg = this.add.rectangle(cx, cy, w, h, 0x0a0a1a, 0.98).setDepth(430).setStrokeStyle(2, CONFIG.COLORS.UI_GOLD);
+    const title = this.add.text(cx, top + 20,
+      `🏆 Başarımlar (${AchievementManager.unlockedCount()}/${AchievementManager.total()})`,
+      this._ts(14, '#ffd700')).setOrigin(0.5).setDepth(431);
+    const els = [bg, title];
+
+    let ly = top + 50;
+    for (const a of AchievementManager.getAll()) {
+      const icon = a.unlocked ? '✓' : '🔒';
+      const color = a.unlocked ? '#66ff99' : '#777777';
+      const line = this.add.text(cx - w / 2 + 16, ly, `${icon} ${a.name} — ${a.desc}`, this._ts(11, color))
+        .setOrigin(0, 0.5).setDepth(431);
+      els.push(line);
+      ly += 26;
+    }
+
+    const closeBg = this.add.rectangle(cx, cy + h / 2 - 22, 120, 30, 0x444466).setDepth(431).setInteractive({ useHandCursor: true });
+    const closeTxt = this.add.text(cx, cy + h / 2 - 22, 'KAPAT', this._ts(12, '#ffffff')).setOrigin(0.5).setDepth(432);
+    els.push(closeBg, closeTxt);
+    const close = () => { els.forEach(e => e.destroy()); this.achvPanel = null; };
+    closeBg.on('pointerdown', close);
+    closeBg.on('pointerover', () => closeBg.setFillStyle(0x555577));
+    closeBg.on('pointerout', () => closeBg.setFillStyle(0x444466));
+
+    this.achvPanel = { close };
+  }
 
   showConfirm(message, onYes) {
     if (this.dialog) return;

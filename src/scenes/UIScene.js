@@ -94,6 +94,31 @@ export default class UIScene extends Phaser.Scene {
     // GameScene event dinle
     const gameScene = this.scene.get('GameScene');
     gameScene.events.on('enemy-killed', this.onEnemyKilled, this);
+
+    // Başarım açılınca toast
+    this.game.events.off('achievement-unlocked', this.showAchievementToast, this);
+    this.game.events.on('achievement-unlocked', this.showAchievementToast, this);
+    this.events.once('shutdown', () => this.game.events.off('achievement-unlocked', this.showAchievementToast, this));
+  }
+
+  /** Başarım açıldığında üstte kısa bir bildirim. */
+  showAchievementToast(data) {
+    if (this._achvToast) this._achvToast.forEach(e => e.destroy());
+    const cx = CONFIG.CANVAS_WIDTH / 2, y = 56;
+    const bg = this.add.rectangle(cx, y, 270, 40, 0x1a1a2e, 0.96).setDepth(250).setStrokeStyle(2, CONFIG.COLORS.UI_GOLD);
+    const title = this.add.text(cx, y - 8, `🏆 ${data.name}`, this.textStyle(12, '#ffd700')).setOrigin(0.5).setDepth(251);
+    const desc = this.add.text(cx, y + 8, data.desc, this.textStyle(9, '#cccccc')).setOrigin(0.5).setDepth(251);
+    const els = [bg, title, desc];
+    this._achvToast = els;
+    els.forEach(e => e.setAlpha(0));
+    this.tweens.add({ targets: els, alpha: 1, duration: 250 });
+    this.time.delayedCall(2600, () => {
+      this.tweens.add({
+        targets: els, alpha: 0, duration: 400,
+        onComplete: () => els.forEach(e => e.destroy()),
+      });
+      if (this._achvToast === els) this._achvToast = null;
+    });
   }
 
   textStyle(size, color) {

@@ -80,6 +80,10 @@ const SaveManager = {
     if (gs.settings) {
       Object.assign(GameState.settings, gs.settings);
     }
+    // Başarımlar
+    if (gs.achievements) {
+      GameState.achievements.unlocked = gs.achievements.unlocked || [];
+    }
     // Stats
     if (gs.stats) {
       Object.assign(GameState.stats, gs.stats);

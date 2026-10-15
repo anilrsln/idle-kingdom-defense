@@ -6,6 +6,7 @@ import UIScene from './scenes/UIScene.js';
 import ConquestScene from './scenes/ConquestScene.js';
 import SoundManager from './systems/SoundManager.js';
 import DevPanel from './systems/DevPanel.js';
+import AchievementManager from './systems/AchievementManager.js';
 
 /**
  * main.js — Oyun giriş noktası.
@@ -33,5 +34,8 @@ SoundManager.init(game);
 
 // Dev tuning paneli — yalnızca ?dev modunda görünür.
 DevPanel.init(game);
+
+// Başarım sistemi
+AchievementManager.init(game);
 
 export default game;

@@ -3,6 +3,7 @@ import GameState from '../state/GameState.js';
 import WaveManager from '../systems/WaveManager.js';
 import IdleManager from '../systems/IdleManager.js';
 import SaveManager from '../systems/SaveManager.js';
+import AchievementManager from '../systems/AchievementManager.js';
 import LaserMonument from '../entities/LaserMonument.js';
 import Archer from '../entities/Archer.js';
 import Cannon from '../entities/Cannon.js';
@@ -216,6 +217,10 @@ export default class GameScene extends Phaser.Scene {
 
     // Floating text güncelleme
     this.updateFloatingTexts(delta);
+
+    // Başarım kontrolü (gerçek zamanlı ~1 sn'de bir)
+    this._achvTimer = (this._achvTimer ?? 0) - deltaMs / 1000;
+    if (this._achvTimer <= 0) { this._achvTimer = 1; AchievementManager.check(); }
   }
 
   /** Savunucu sayısını GameState ile senkronize eder. */

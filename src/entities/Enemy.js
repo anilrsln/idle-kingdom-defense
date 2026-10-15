@@ -184,6 +184,7 @@ export default class Enemy {
     GameState.stats.totalEnemiesKilled++;
     GameState.stats.totalExpEarned += exp;
     GameState.stats.totalFoodEarned += food;
+    if (this.type === 'boss') GameState.stats.bossesKilled++;
     this.scene.events.emit('enemy-killed', {
       type: this.type, exp, food,
       x: this.sprite.x, y: this.sprite.y, killedBy,
