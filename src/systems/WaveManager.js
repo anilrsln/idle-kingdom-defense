@@ -36,7 +36,7 @@ export default class WaveManager {
 
   selectEnemyType() {
     const available = this.getAvailableEnemyTypes();
-    const weights = { skeleton: 40, armored: 20, fast: 20, foodCarrier: 15, elite: 5, shield: 10 };
+    const weights = { skeleton: 40, armored: 20, fast: 20, foodCarrier: 15, elite: 5, shield: 10, splitter: 10 };
     let total = 0;
     const list = available.map(type => {
       const w = weights[type] || 10;
@@ -54,6 +54,22 @@ export default class WaveManager {
     const enemy = new Enemy(this.scene, type, GameState.wave.current, laneY);
     this.enemies.push(enemy);
     GameState.wave.enemiesSpawned++;
+  }
+
+  /** Splitter ölünce küçük çocukları öldüğü yerde spawn eder. */
+  spawnChildren(data) {
+    const corridorTop = 150;
+    const corridorBottom = CONFIG.CANVAS_HEIGHT - CONFIG.LAVA_HEIGHT - 30;
+    const n = data.count || 2;
+    for (let i = 0; i < n; i++) {
+      const spread = i - (n - 1) / 2;
+      const childY = Math.max(corridorTop, Math.min(corridorBottom, data.y + spread * 18));
+      const child = new Enemy(this.scene, 'splitter', data.wave, childY, {
+        hpFactor: data.hpFactor, rewardFactor: data.rewardFactor, scale: data.scale,
+        noSplit: true, child: true, spawnX: data.x + spread * 6,
+      });
+      this.enemies.push(child);
+    }
   }
 
   completeWave() {

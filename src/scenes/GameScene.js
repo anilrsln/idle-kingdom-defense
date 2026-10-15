@@ -50,6 +50,11 @@ export default class GameScene extends Phaser.Scene {
     this.game.events.on('defender-upgraded', this.onDefenderUpgraded, this);
     this.events.once('shutdown', () => this.game.events.off('defender-upgraded', this.onDefenderUpgraded, this));
 
+    // Splitter: ölünce çocuklar spawn olur
+    this.game.events.off('enemy-split', this.onEnemySplit, this);
+    this.game.events.on('enemy-split', this.onEnemySplit, this);
+    this.events.once('shutdown', () => this.game.events.off('enemy-split', this.onEnemySplit, this));
+
     // UIScene'i başlat
     this.scene.launch('UIScene');
 
@@ -295,6 +300,11 @@ export default class GameScene extends Phaser.Scene {
         duration: 110, yoyo: true, ease: 'Quad.easeOut',
       });
     }
+  }
+
+  /** Splitter öldü — WaveManager çocukları spawn etsin. */
+  onEnemySplit(data) {
+    if (this.waveManager) this.waveManager.spawnChildren(data);
   }
 
   /** Dev panel: belirli bir wave'e atla. */

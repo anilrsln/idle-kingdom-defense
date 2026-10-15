@@ -5,19 +5,28 @@ import ConquestManager from '../systems/ConquestManager.js';
 
 /** Enemy — Sağdan spawn, sola yürü, lava veya savunucu ölümü. */
 export default class Enemy {
-  constructor(scene, type, waveNumber, laneY) {
+  constructor(scene, type, waveNumber, laneY, options = {}) {
     this.scene = scene;
     this.type = type;
     this.alive = true;
     this.dying = false;
+    this._wave = waveNumber;
 
     const config = CONFIG.ENEMIES[type];
     this.name = config.name;
     this.speed = config.speed;
-    this.foodReward = config.food;
-    this.maxHP = calculateEnemyHP(config.hp, CONFIG.WAVES.hpScaling, waveNumber);
+
+    // Spawn seçenekleri (splitter çocukları için): küçük/zayıf, bölünmez, kotaya sayılmaz
+    const hpFactor = options.hpFactor ?? 1;
+    const rewardFactor = options.rewardFactor ?? 1;
+    this.isChild = options.child ?? false;
+    this.noSplit = options.noSplit ?? false;
+    this.splitConfig = config.split || null;
+
+    this.foodReward = config.food * rewardFactor;
+    this.maxHP = Math.max(1, Math.floor(calculateEnemyHP(config.hp, CONFIG.WAVES.hpScaling, waveNumber) * hpFactor));
     this.currentHP = this.maxHP;
-    this.expReward = calculateEnemyEXP(config.exp, CONFIG.WAVES.expScaling, waveNumber);
+    this.expReward = calculateEnemyEXP(config.exp, CONFIG.WAVES.expScaling, waveNumber) * rewardFactor;
 
     // Davranış: kalkan (opsiyonel). config.shield varsa ilk darbeleri emer;
     // HP ile aynı eğride ölçeklenir. (Veri-güdümlü davranış deseni — yeni
@@ -26,7 +35,9 @@ export default class Enemy {
     this.currentShield = this.maxShield;
     this._shieldBroken = false;
 
-    this.sprite = scene.add.image(CONFIG.SPAWN_X, laneY, `enemy-${type}`).setDepth(10).setAlpha(0);
+    const spawnX = options.spawnX ?? CONFIG.SPAWN_X;
+    this.sprite = scene.add.image(spawnX, laneY, `enemy-${type}`).setDepth(10).setAlpha(0);
+    if (options.scale) this.sprite.setScale(options.scale);
     scene.tweens.add({ targets: this.sprite, alpha: 1, duration: 200 });
 
     this.hpBarWidth = 20;
@@ -87,6 +98,14 @@ export default class Enemy {
     const exp = this.expReward * expMult;
     const food = this.foodReward * foodMult;
     this._grantRewards(exp, food, 'defender');
+    // Splitter: savunucu ile ölünce küçük çocuklara bölünür (lavada bölünmez)
+    if (this.splitConfig && !this.noSplit) {
+      const sc = this.splitConfig;
+      this.scene.game.events.emit('enemy-split', {
+        x: this.sprite.x, y: this.sprite.y, wave: this._wave,
+        count: sc.count, hpFactor: sc.hpFactor, rewardFactor: sc.rewardFactor, scale: sc.scale,
+      });
+    }
     this.sprite.setTint(0xffffff);
     this.scene.tweens.add({
       targets: this.sprite, scaleX: 1.5, scaleY: 1.5, alpha: 0, duration: 300, ease: 'Power2',
@@ -116,7 +135,7 @@ export default class Enemy {
   _grantRewards(exp, food, killedBy) {
     GameState.resources.exp += exp;
     GameState.resources.food += food;
-    GameState.wave.enemiesKilled++;
+    if (!this.isChild) GameState.wave.enemiesKilled++; // çocuklar wave kotasına sayılmaz
     GameState.stats.totalEnemiesKilled++;
     GameState.stats.totalExpEarned += exp;
     GameState.stats.totalFoodEarned += food;
