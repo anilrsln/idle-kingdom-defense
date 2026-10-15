@@ -26,6 +26,13 @@ const MIGRATIONS = {
     if (gs.stats.bossesKilled == null) gs.stats.bossesKilled = 0;
     return gs;
   },
+  // v2 → v3: ölçülen kazanım hızı alanları
+  2: (gs) => {
+    if (!gs.meta) gs.meta = {};
+    if (gs.meta.expRate == null) gs.meta.expRate = 0;
+    if (gs.meta.foodRate == null) gs.meta.foodRate = 0;
+    return gs;
+  },
 };
 
 const SaveManager = {

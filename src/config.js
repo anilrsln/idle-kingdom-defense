@@ -18,7 +18,7 @@ export const CONFIG = {
   // Kaydetme
   SAVE_KEY: 'idle-kingdom-defense-save',
   SAVE_INTERVAL: 30000,
-  SAVE_VERSION: 2, // save şema sürümü — değişince artır + SaveManager'a migration ekle
+  SAVE_VERSION: 3, // save şema sürümü — değişince artır + SaveManager'a migration ekle
 
   // Idle sistemi
   IDLE_EFFICIENCY: 0.5,

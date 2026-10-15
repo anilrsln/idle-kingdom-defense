@@ -66,6 +66,11 @@ export default class GameScene extends Phaser.Scene {
       this.registry.remove('idleEarnings');
       this.showIdlePopup(idleEarnings);
     }
+
+    // Kazanım hızı örnekleyici başlangıcı (idle için gerçek EXP/Food/sn)
+    this._rateSampleTime = 0;
+    this._lastRateExp = GameState.stats.totalExpEarned;
+    this._lastRateFood = GameState.stats.totalFoodEarned;
   }
 
   /** Idle gelir popup'ı gösterir. */
@@ -110,6 +115,9 @@ export default class GameScene extends Phaser.Scene {
     collectBtn.on('pointerout', () => collectBtn.setFillStyle(0x1a6a1a));
     collectBtn.on('pointerdown', () => {
       IdleManager.applyEarnings(earnings);
+      // Toplanan lump'ı kazanım hızına saymamak için baseline'ı güncelle
+      this._lastRateExp = GameState.stats.totalExpEarned;
+      this._lastRateFood = GameState.stats.totalFoodEarned;
       // Elementleri temizle
       [bg, title, info, expLine, foodLine, collectBtn, collectLabel].forEach(el => el.destroy());
     });
@@ -221,6 +229,20 @@ export default class GameScene extends Phaser.Scene {
     // Başarım kontrolü (gerçek zamanlı ~1 sn'de bir)
     this._achvTimer = (this._achvTimer ?? 0) - deltaMs / 1000;
     if (this._achvTimer <= 0) { this._achvTimer = 1; AchievementManager.check(); }
+
+    // Kazanım hızı örnekleme (idle gelir için gerçek EXP/Food/sn, EMA ile)
+    this._rateSampleTime = (this._rateSampleTime ?? 0) + deltaMs / 1000;
+    if (this._rateSampleTime >= 2) {
+      const dt = this._rateSampleTime;
+      const dExp = Math.max(0, GameState.stats.totalExpEarned - (this._lastRateExp ?? GameState.stats.totalExpEarned));
+      const dFood = Math.max(0, GameState.stats.totalFoodEarned - (this._lastRateFood ?? GameState.stats.totalFoodEarned));
+      const a = 0.3; // EMA yumuşatma
+      GameState.meta.expRate = (GameState.meta.expRate || 0) * (1 - a) + (dExp / dt) * a;
+      GameState.meta.foodRate = (GameState.meta.foodRate || 0) * (1 - a) + (dFood / dt) * a;
+      this._lastRateExp = GameState.stats.totalExpEarned;
+      this._lastRateFood = GameState.stats.totalFoodEarned;
+      this._rateSampleTime = 0;
+    }
   }
 
   /** Savunucu sayısını GameState ile senkronize eder. */

@@ -36,7 +36,8 @@ const GameState = {
     totalFoodEarned: 0, totalWavesCompleted: 0, bossesKilled: 0,
   },
   achievements: { unlocked: [] },
-  meta: { lastSaveTime: Date.now(), totalPlayTime: 0, saveVersion: 1 },
+  // expRate/foodRate: oynarken ölçülen gerçek kazanım hızı (idle için kullanılır)
+  meta: { lastSaveTime: Date.now(), totalPlayTime: 0, saveVersion: 1, expRate: 0, foodRate: 0 },
 };
 
 /**
@@ -55,7 +56,7 @@ export function resetAll(state) {
   state.prestige = { unlocked: false, count: 0, multiplier: 1.0 };
   state.stats = { totalEnemiesKilled: 0, totalExpEarned: 0, totalFoodEarned: 0, totalWavesCompleted: 0, bossesKilled: 0 };
   state.achievements = { unlocked: [] };
-  state.meta = { ...state.meta, lastSaveTime: Date.now(), totalPlayTime: 0 };
+  state.meta = { ...state.meta, lastSaveTime: Date.now(), totalPlayTime: 0, expRate: 0, foodRate: 0 };
   // settings (ses) korunur; başarımlar Yeni Oyun'da sıfırlanır, prestige'de korunur
 }
 
@@ -67,6 +68,8 @@ export function resetForPrestige(state) {
   state.defenders.archer = { unlocked: false, count: 0, maxCount: 5, damage: { level: 1 }, fireRate: { level: 1 }, range: { level: 1 } };
   state.defenders.cannon = { unlocked: false, canBeHired: false, count: 0, maxCount: 3, damage: { level: 1 }, blastRadius: { level: 1 }, reloadSpeed: { level: 1 } };
   state.conquestMap.unlockedNodes = [];
+  state.meta.expRate = 0; // prestige sonrası düşük DPS'e göre yeniden ölçülür
+  state.meta.foodRate = 0;
 }
 
 export default GameState;

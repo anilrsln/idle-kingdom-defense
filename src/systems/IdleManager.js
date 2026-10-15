@@ -1,16 +1,15 @@
 import GameState from '../state/GameState.js';
 import { CONFIG } from '../config.js';
-import ConquestManager from './ConquestManager.js';
 
 /**
  * IdleManager — Offline gelir hesaplama.
- * Son kayıt zamanı ile şimdiki zaman arasındaki farktan idle gelir üretir.
+ *
+ * Gerçekçi model: idle geliri, oyuncunun oynarken ÖLÇÜLEN gerçek kazanım
+ * hızına (GameState.meta.expRate / foodRate) dayanır. Bu hız gerçek DPS,
+ * upgrade'ler, wave ve tüm çarpanları (prestige/conquest/ekonomi) zaten
+ * içerir — bu yüzden burada tekrar çarpan uygulanmaz, sadece verimlilik.
  */
 const IdleManager = {
-  /**
-   * Offline süreyi ve kazanılacak kaynakları hesaplar.
-   * @returns {{ elapsedSeconds: number, exp: number, food: number } | null}
-   */
   calculateIdleEarnings() {
     const lastSave = GameState.meta.lastSaveTime;
     if (!lastSave) return null;
@@ -19,32 +18,20 @@ const IdleManager = {
     let elapsedMs = now - lastSave;
     if (elapsedMs < 60000) return null; // 1 dakikadan kısa — idle yok
 
-    // Maks idle süresi
     const maxMs = CONFIG.MAX_IDLE_HOURS * 3600 * 1000;
     if (elapsedMs > maxMs) elapsedMs = maxMs;
-
     const elapsedSeconds = elapsedMs / 1000;
 
-    // Tahmini kaynak/saniye: son wave'deki düşmanlardan
-    // Basit hesaplama: wave * baseDrop * efficiency
-    const wave = GameState.wave.current || 1;
-    const baseExpPerSec = 0.5 + (wave * 0.3);  // Artan wave ile daha fazla
-    const baseFoodPerSec = 0.1 + (wave * 0.05);
+    const expRate = GameState.meta.expRate || 0;
+    const foodRate = GameState.meta.foodRate || 0;
+    const exp = Math.floor(expRate * elapsedSeconds * CONFIG.IDLE_EFFICIENCY);
+    const food = Math.floor(foodRate * elapsedSeconds * CONFIG.IDLE_EFFICIENCY);
 
-    const prestigeMult = GameState.prestige.multiplier;
-    const expMult = prestigeMult * ConquestManager.getEconomyMultiplier('expMultiplier');
-    const foodMult = prestigeMult * ConquestManager.getEconomyMultiplier('foodMultiplier');
-
-    const exp = Math.floor(baseExpPerSec * elapsedSeconds * CONFIG.IDLE_EFFICIENCY * expMult);
-    const food = Math.floor(baseFoodPerSec * elapsedSeconds * CONFIG.IDLE_EFFICIENCY * foodMult);
+    if (exp <= 0 && food <= 0) return null; // henüz ölçülmüş hız yok
 
     return { elapsedSeconds, exp, food };
   },
 
-  /**
-   * Idle kaynakları ekle.
-   * @param {{ exp: number, food: number }} earnings
-   */
   applyEarnings(earnings) {
     GameState.resources.exp += earnings.exp;
     GameState.resources.food += earnings.food;
