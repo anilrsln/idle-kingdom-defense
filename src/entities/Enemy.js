@@ -25,6 +25,7 @@ export default class Enemy {
     this.noSplit = options.noSplit ?? false;
     this.splitConfig = config.split || null;
     this.healConfig = config.heal || null; // yakındaki düşmanları iyileştirir
+    this.rageConfig  = config.rage  || null; // boss_berserker: hasar aldıkça hızlanır
 
     this.foodReward = config.food * rewardFactor;
     this.maxHP = Math.max(1, Math.floor(calculateEnemyHP(config.hp, CONFIG.WAVES.hpScaling, waveNumber) * hpFactor));
@@ -136,6 +137,22 @@ export default class Enemy {
       }
     }
     if (amount > 0) this.currentHP -= amount;
+    // Rage mekaniği: boss_berserker hasar aldıkça hızlanır
+    if (amount > 0 && this.rageConfig && this.alive) {
+      const rc = this.rageConfig;
+      if (this._baseSpeed === undefined) this._baseSpeed = this.speed; // ilk kez kaydet
+      const maxSpeed = this._baseSpeed * rc.maxMultiplier;
+      if (this.speed < maxSpeed) {
+        this.speed = Math.min(maxSpeed, this.speed + this._baseSpeed * rc.speedGainFraction);
+        // Giderek kızaran tint: beyazdan kırmızıya
+        if (this.sprite) {
+          const t = Math.min(1, (this.speed - this._baseSpeed) / (maxSpeed - this._baseSpeed));
+          const r = 255;
+          const gb = Math.floor(255 * (1 - t));
+          this.sprite.setTint(Phaser.Display.Color.GetColor(r, gb, gb));
+        }
+      }
+    }
     this.updateHPBar();
     // Kritik vuruş: turuncu flash + "CRIT" bildirimi
     if (isCrit && this.sprite) {

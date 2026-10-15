@@ -160,6 +160,8 @@ export const CONFIG = {
     'enemy-boss_tank':      { shape: 'rect',     width: 44, height: 44, color: 0xcc3333 }, // kırmızı kare = tank
     'enemy-boss_berserker': { shape: 'triangle', size: 28,             color: 0xff6600 }, // turuncu üçgen = berserker
     'enemy-boss_shaman':    { shape: 'circle',   size: 26,             color: 0xaa44ff }, // mor daire = şaman
+    'enemy-boss_splitter':  { shape: 'circle',   size: 30,             color: 0xff44cc }, // pembe daire = splitter boss
+    'enemy-boss_armored':   { shape: 'rect',     width: 48, height: 48, color: 0x778899 }, // gri kare = zırhlı boss
     // Savunucular
     'defender-laser':    { shape: 'rect', width: 24, height: 32, color: 0x00ffff },
     'defender-archer':   { shape: 'triangle', size: 16, color: 0x7cfc00 },
@@ -192,15 +194,22 @@ export const CONFIG = {
     // boss_tank: zırhlı, çok yüksek HP + kalkan — yavaş ama dayanıklı
     boss_tank:    { name: 'Tank Boss',    hp: 1000, speed: 12, exp: 140, food: 25, color: 0xcc3333,
                     shield: 300 },
-    // boss_berserker: hızlı saldırıcı — düşük HP ama çok hızlı, ödülü yüksek
-    boss_berserker: { name: 'Berserker Boss', hp: 500, speed: 32, exp: 160, food: 18, color: 0xff6600 },
+    // boss_berserker: hızlı saldırıcı + rage — hasar aldıkça hızlanır (max 2× base speed)
+    boss_berserker: { name: 'Berserker Boss', hp: 500, speed: 32, exp: 160, food: 18, color: 0xff6600,
+                      rage: { speedGainFraction: 0.04, maxMultiplier: 2.0 } },
     // boss_shaman: kendini iyileştiren — orta HP + heal özelliği, bitirmek zor
     boss_shaman:  { name: 'Shaman Boss',  hp: 700, speed: 16, exp: 150, food: 22, color: 0xaa44ff,
                     heal: { fraction: 0.05, radius: 0, interval: 2.5 } }, // radius:0 → sadece kendini iyileştirir
+    // boss_splitter: ölünce 3 mini boss'a bölünür — mini'ler bölünmez ve düşük ödül verir
+    boss_splitter: { name: 'Splitter Boss', hp: 600, speed: 20, exp: 130, food: 20, color: 0xff44cc,
+                     split: { count: 3, hpFactor: 0.35, rewardFactor: 0.3, scale: 0.55 } },
+    // boss_armored: yavaş ama güçlü kalkan + yüksek HP
+    boss_armored: { name: 'Armored Boss',  hp: 1400, speed: 9,  exp: 180, food: 30, color: 0x778899,
+                    shield: 500 },
   },
 
   // Boss rotasyon sırası — bossEvery'nin katlarında bu sırayla döner
-  BOSS_ROTATION: ['boss_tank', 'boss_berserker', 'boss_shaman'],
+  BOSS_ROTATION: ['boss_tank', 'boss_berserker', 'boss_shaman', 'boss_splitter', 'boss_armored'],
 
   // Dalga sistemi
   WAVES: {
