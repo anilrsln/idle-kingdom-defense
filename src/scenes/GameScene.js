@@ -197,7 +197,7 @@ export default class GameScene extends Phaser.Scene {
     // Lava: lazer (WALL_X+40) hemen sağında, corridor boyunca dikey ateş şeridi
     const laserX = CONFIG.WALL_X + 40;
     const lavaW = 18;
-    const lavaCX = laserX + 12 + lavaW / 2;  // lazer sağından 12px boşluk
+    const lavaCX = laserX + 22 + lavaW / 2;  // lazer sağından 22px boşluk (biraz daha sağa)
     const lavaH = CONFIG.CORRIDOR_BOTTOM - CONFIG.CORRIDOR_TOP;
     const lavaCY = CONFIG.CORRIDOR_TOP + lavaH / 2;
 
@@ -306,13 +306,21 @@ export default class GameScene extends Phaser.Scene {
       // Archer: sur ustunde | Cannon/Frost/Catapult: surun solunda (kale arkasi)
       const colX = { archer: CONFIG.WALL_X, cannon: 118, frost: 68, catapult: 28 };
       const x = colX[type] ?? (CONFIG.DEFENDER_X + 15);
-      // Ortadan koseye acilan lane sirasi: 0→orta, 1→orta-1, 2→orta+1, ...
       const laneSpacing = (corridorBottom - corridorTop) / laneCount;
-      const midLane = Math.floor(laneCount / 2); // orta lane indexi
-      const offsets = [0, -1, 1, -2, 2, -3, 3];
-      const laneIdx = midLane + (offsets[idx] ?? idx);
-      const clampedLane = Phaser.Math.Clamp(laneIdx, 0, laneCount - 1);
-      const y = corridorTop + laneSpacing * (clampedLane + 0.5);
+      let y;
+      if (type === 'catapult') {
+        // Catapult: lane araları 2.5 ve 3.5 (şeritlerin tam ortasında, simetrik)
+        const catapultLanes = [2.5, 3.5];
+        const lanePos = catapultLanes[idx % catapultLanes.length] ?? 2.5;
+        y = corridorTop + laneSpacing * lanePos;
+      } else {
+        // Diğerleri: ortadan köşeye açılan sıra (0→orta, 1→orta-1, 2→orta+1, ...)
+        const midLane = Math.floor(laneCount / 2);
+        const offsets = [0, -1, 1, -2, 2, -3, 3];
+        const laneIdx = midLane + (offsets[idx] ?? idx);
+        const clampedLane = Phaser.Math.Clamp(laneIdx, 0, laneCount - 1);
+        y = corridorTop + laneSpacing * (clampedLane + 0.5);
+      }
       list.push(new DefenderClass(this, x, y, idx));
     }
 

@@ -290,13 +290,14 @@ export default class Enemy {
   dieToLava() {
     if (this.dying) return;
     this.dying = true; this.alive = false;
-    const dbg = CONFIG.DEBUG?.gainMultiplier ?? 1;
-    const expMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('expMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('expBoost');
-    const foodMult = GameState.prestige.multiplier * ConquestManager.getEconomyMultiplier('foodMultiplier') * dbg * EconomyManager.getEconomyBoostMultiplier('foodBoost');
-    const lavaRate = ConquestManager.getLavaExpRate(); // varsayılan 0.5; lavaConversion → 0.8
-    const exp = Math.floor(this.expReward * lavaRate * expMult);
-    const food = Math.floor(this.foodReward * 0.5 * foodMult);
-    this._grantRewards(exp, food, 'lava');
+    // Lavaya düşen düşman ödül VERMEZ (sur ölümü gibi) — yalnızca kota + istatistik.
+    if (!this.isChild) GameState.wave.enemiesKilled++;
+    GameState.stats.totalEnemiesKilled++;
+    this.scene.events.emit('enemy-killed', {
+      type: this.type, exp: 0, food: 0,
+      x: this.sprite.x, y: this.sprite.y, killedBy: 'lava',
+    });
+    this.scene.game.events.emit('sfx', 'deathLava');
     this.sprite.setTint(CONFIG.COLORS.LAVA);
     const lavaY = CONFIG.CANVAS_HEIGHT - CONFIG.LAVA_HEIGHT + 10;
     this.scene.tweens.add({
