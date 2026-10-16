@@ -365,7 +365,7 @@ export const CONFIG = {
     },
     lavaConversion: {
       id: 'lavaConversion', name: 'Lava Income Conversion',
-      description: 'Lava\'ya düşen düşmanlardan EXP verimi %35\'ten %80\'e yükselir',
+      description: 'Lava\'ya düşen düşmanlardan EXP verimi %50\'den %80\'e yükselir',
       cost: { exp: 600 },
       effect: { type: 'lavaExpRate', value: 0.8 },
       requires: ['expMultiplier'], x: 280, y: 440,

@@ -141,7 +141,7 @@ export default {
     laserChain:      { name: 'Laser Enhancement II',    description: 'Laser chains 50% damage to a second target on each hit' },
     bossPenetration: { name: 'Artillery Specialist',    description: '+50% Boss damage — all defenders' },
     foodBoost2:      { name: 'Food Production II',       description: '+30% Food Gain' },
-    lavaConversion:  { name: 'Lava Income Conversion',   description: 'EXP yield from enemies falling into lava rises from 35% to 80%' },
+    lavaConversion:  { name: 'Lava Income Conversion',   description: 'EXP yield from enemies falling into lava rises from 50% to 80%' },
     kingsDecree1:    { name: "King's Decree I",          description: '+40% all EXP and Food gain' },
     kingsDecree2:    { name: "King's Decree II",         description: '+60% all EXP and Food gain' },
     frostUnlock:     { name: 'Frost Tower Unlock',       description: 'Unlocks Frost Tower — slows enemies' },

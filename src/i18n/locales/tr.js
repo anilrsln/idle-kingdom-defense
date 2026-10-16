@@ -151,7 +151,7 @@ export default {
     laserChain:      { name: 'Lazer Geliştirme II',   description: 'Lazer her vuruşta ikinci bir hedefe %50 hasar iletir' },
     bossPenetration: { name: 'Topçu Uzmanı',          description: '+%50 Boss hasarı — tüm savunucular' },
     foodBoost2:      { name: 'Food Üretimi II',       description: '+%30 Yiyecek Kazanımı' },
-    lavaConversion:  { name: 'Lav Gelir Dönüşümü',    description: 'Lava düşen düşmanlardan EXP verimi %35\'ten %80\'e yükselir' },
+    lavaConversion:  { name: 'Lav Gelir Dönüşümü',    description: 'Lava düşen düşmanlardan EXP verimi %50\'den %80\'e yükselir' },
     kingsDecree1:    { name: 'Kral Fermanı I',        description: '+%40 tüm EXP ve Yiyecek kazanımı' },
     kingsDecree2:    { name: 'Kral Fermanı II',       description: '+%60 tüm EXP ve Yiyecek kazanımı' },
     frostUnlock:     { name: 'Frost Tower Açılışı',   description: 'Frost Tower açılır — düşmanları yavaşlatır' },
