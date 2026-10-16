@@ -11,7 +11,7 @@ export default class FrostTower extends Defender {
   constructor(scene, x, y, index) {
     super(scene, 'frost', x, y);
     this.index = index;
-    this.sprite = scene.add.image(x, y, 'defender-frost').setDepth(5);
+    this.sprite = scene.add.sprite(x, y, 'defender-frost').setDepth(5);
     AssetProvider.applySprite(this.sprite, 'defender-frost');
     this.projectiles = [];
   }

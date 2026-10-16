@@ -13,7 +13,7 @@ export default class Catapult extends Defender {
   constructor(scene, x, y, index) {
     super(scene, 'catapult', x, y);
     this.index = index;
-    this.sprite = scene.add.image(x, y, 'defender-catapult').setDepth(5);
+    this.sprite = scene.add.sprite(x, y, 'defender-catapult').setDepth(5);
     AssetProvider.applySprite(this.sprite, 'defender-catapult');
     this.projectiles = [];
   }

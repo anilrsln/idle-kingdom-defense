@@ -10,7 +10,7 @@ import AssetProvider from '../systems/AssetProvider.js';
 export default class LaserMonument extends Defender {
   constructor(scene, x, y) {
     super(scene, 'laser', x, y);
-    this.sprite = scene.add.image(x, y, 'defender-laser').setDepth(5);
+    this.sprite = scene.add.sprite(x, y, 'defender-laser').setDepth(5);
     AssetProvider.applySprite(this.sprite, 'defender-laser');
     this.laserGraphics = scene.add.graphics().setDepth(6);
     this.glowPhase = 0;

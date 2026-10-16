@@ -41,7 +41,7 @@ export default class Enemy {
     this._shieldBroken = false;
 
     const spawnX = options.spawnX ?? CONFIG.SPAWN_X;
-    this.sprite = scene.add.image(spawnX, laneY, `enemy-${type}`).setDepth(10).setAlpha(0);
+    this.sprite = scene.add.sprite(spawnX, laneY, `enemy-${type}`).setDepth(10).setAlpha(0);
     AssetProvider.applySprite(this.sprite, `enemy-${type}`);
     if (options.scale) this.sprite.setScale(options.scale);
     scene.tweens.add({ targets: this.sprite, alpha: 1, duration: 200 });
