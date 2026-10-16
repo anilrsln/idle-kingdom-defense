@@ -22,12 +22,12 @@ const DISPLAY_SIZES = {
   'enemy-boss_armored':   { w: 96, h: 96 },
   // defenders
   'defender-laser':       { w: 24, h: 48 },
-  'defender-archer':      { w: 76, h: 76 },   // 2x buyuk
+  'defender-archer':      { w: 57, h: 57 },   // 3/4 boyut
   'defender-cannon':      { w: 32, h: 42 },
   'defender-frost':       { w: 28, h: 48 },
   'defender-catapult':    { w: 36, h: 30 },
   // projectiles
-  'projectile-arrow':     { w: 5, h: 5 },
+  'projectile-arrow':     { w: 3, h: 3 },
 };
 
 /**
@@ -35,19 +35,19 @@ const DISPLAY_SIZES = {
  * Phaser anims.create ile kaydedilir, sprite.play(key) ile oynatılır.
  */
 const ANIM_DEFS = {
-  'enemy-skeleton':       { frameCount: 6, frameRate: 8 },
+  'enemy-skeleton':       { frameCount: 6, frameRate: 8,  flipX: true },
   'enemy-armored':        { frameCount: 6, frameRate: 7,  flipX: true },
-  'enemy-fast':           { frameCount: 6, frameRate: 12 },
-  'enemy-foodCarrier':    { frameCount: 6, frameRate: 8 },
+  'enemy-fast':           { frameCount: 6, frameRate: 12, flipX: true },
+  'enemy-foodCarrier':    { frameCount: 6, frameRate: 8,  flipX: true },
   'enemy-elite':          { frameCount: 6, frameRate: 7,  flipX: true },
   'enemy-shield':         { frameCount: 6, frameRate: 7,  flipX: true },
-  'enemy-splitter':       { frameCount: 6, frameRate: 9 },
-  'enemy-healer':         { frameCount: 6, frameRate: 8 },
+  'enemy-splitter':       { frameCount: 6, frameRate: 9,  flipX: true },
+  'enemy-healer':         { frameCount: 6, frameRate: 8,  flipX: true },
   'enemy-boss_tank':      { frameCount: 6, frameRate: 6,  flipX: true },
   'enemy-boss_berserker': { frameCount: 6, frameRate: 7,  flipX: true },
-  'enemy-boss_shaman':    { frameCount: 6, frameRate: 7 },
-  'enemy-boss_splitter':  { frameCount: 6, frameRate: 7 },
-  'enemy-boss_armored':   { frameCount: 6, frameRate: 6 },
+  'enemy-boss_shaman':    { frameCount: 6, frameRate: 7,  flipX: true },
+  'enemy-boss_splitter':  { frameCount: 6, frameRate: 7,  flipX: true },
+  'enemy-boss_armored':   { frameCount: 6, frameRate: 6,  flipX: true },
   'defender-archer':      { frameCount: 6, frameRate: 8 },
 };
 
