@@ -32,7 +32,7 @@ const DISPLAY_SIZES = {
   'enemy-boss_armored':   { w: 88, h: 88 },
   // defenders — bina asset'leri statik (128x256 veya 192x256)
   'defender-laser':       { w: 24, h: 48 },   // Tower (dar ama yüksek)
-  'defender-archer':      { w: 32, h: 42 },   // Archery
+  'defender-archer':      { w: 36, h: 36 },   // Archer unit sprite
   'defender-cannon':      { w: 32, h: 42 },   // Barracks
   'defender-frost':       { w: 28, h: 48 },   // Monastery (uzun)
   'defender-catapult':    { w: 36, h: 30 },   // Castle (geniş)

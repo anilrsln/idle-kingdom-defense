@@ -164,12 +164,12 @@ export const CONFIG = {
     'enemy-boss_armored':   { sprite: 'assets/units/black-pawn-idle.png',     frames: { frameWidth: 192, frameHeight: 192 } },
     // Defenders — Bina asset'leri (statik PNG, frames yok)
     'defender-laser':    { sprite: 'assets/buildings/blue-tower.png' },
-    'defender-archer':   { sprite: 'assets/buildings/blue-archery.png' },
+    'defender-archer':   { sprite: 'assets/units/blue-archer-idle.png', frames: { frameWidth: 192, frameHeight: 192 } },
     'defender-cannon':   { sprite: 'assets/buildings/blue-barracks.png' },
     'defender-frost':    { sprite: 'assets/buildings/blue-monastery.png' },
     'defender-catapult': { sprite: 'assets/buildings/blue-castle.png' },
     // Projectiles — keep geometric for now (tiny, fast-moving objects)
-    'projectile-arrow':      { shape: 'circle', size: 3, color: 0x7cfc00 },
+    'projectile-arrow':      { sprite: 'assets/units/arrow.png' },
     'projectile-cannonball': { shape: 'circle', size: 5, color: 0xff8c00 },
     'projectile-frostbolt':  { shape: 'circle', size: 4, color: 0x88ccff },
     'projectile-boulder':    { shape: 'circle', size: 7, color: 0x886655 },

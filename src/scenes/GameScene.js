@@ -278,9 +278,13 @@ export default class GameScene extends Phaser.Scene {
       const idx = list.length;
       const corridorTop = 150;
       const corridorBottom = CONFIG.CANVAS_HEIGHT - CONFIG.LAVA_HEIGHT - 30;
-      const spacing = (corridorBottom - corridorTop) / 6;
+      // Her tip kendi x sütununda, maxCount'a göre y spacing
+      const colX = { archer: 115, cannon: 150, frost: 115, catapult: 150 };
+      const maxRows = { archer: 5, cannon: 3, frost: 3, catapult: 2 };
+      const rows = maxRows[type] || 5;
+      const spacing = (corridorBottom - corridorTop) / (rows + 1);
       const y = corridorTop + spacing * (idx + 1);
-      const x = CONFIG.DEFENDER_X + (['cannon', 'catapult'].includes(type) ? 30 : 15);
+      const x = colX[type] || (CONFIG.DEFENDER_X + 15);
       list.push(new DefenderClass(this, x, y, idx));
     }
 
