@@ -31,11 +31,11 @@ const DISPLAY_SIZES = {
   'enemy-boss_splitter':  { w: 96, h: 96 },
   'enemy-boss_armored':   { w: 88, h: 88 },
   // defenders — bina asset'leri statik (128x256 veya 192x256)
-  'defender-laser':       { w: 40, h: 80 },   // Tower
-  'defender-archer':      { w: 56, h: 75 },   // Archery
-  'defender-cannon':      { w: 56, h: 75 },   // Barracks
-  'defender-frost':       { w: 56, h: 75 },   // Monastery
-  'defender-catapult':    { w: 48, h: 64 },   // Castle (küçük)
+  'defender-laser':       { w: 24, h: 48 },   // Tower (dar ama yüksek)
+  'defender-archer':      { w: 32, h: 42 },   // Archery
+  'defender-cannon':      { w: 32, h: 42 },   // Barracks
+  'defender-frost':       { w: 28, h: 48 },   // Monastery (uzun)
+  'defender-catapult':    { w: 36, h: 30 },   // Castle (geniş)
 };
 
 const AssetProvider = {
