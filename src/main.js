@@ -7,6 +7,7 @@ import ConquestScene from './scenes/ConquestScene.js';
 import SoundManager from './systems/SoundManager.js';
 import DevPanel from './systems/DevPanel.js';
 import AchievementManager from './systems/AchievementManager.js';
+import { onLocaleChange } from './i18n/index.js';
 
 /**
  * main.js — Oyun giriş noktası.
@@ -37,5 +38,26 @@ DevPanel.init(game);
 
 // Başarım sistemi
 AchievementManager.init(game);
+
+/**
+ * Dil değişince aktif tüm sahneleri yeniden başlat ki metinler yeni dilde
+ * çizilsin. GameState ayrı tutulduğu için oyun ilerlemesi korunur.
+ * MenuScene gibi 'data' ile başlatılan sahnelerde mevcut data yeniden verilir.
+ */
+onLocaleChange(() => {
+  // GameScene'i YENİDEN BAŞLATMA — create() WaveManager'ı ve combo'yu sıfırlar,
+  // bu da dalga ilerlemesini kaybettirir. Onun kalıcı metinleri UIScene'de;
+  // geçici floating text'ler bir sonraki olayda zaten yeni dilde gelir.
+  // Sadece arayüz sahnelerini yeniden çiz.
+  const UI_SCENES = ['UIScene', 'ConquestScene', 'MenuScene'];
+  UI_SCENES.forEach((key) => {
+    const sc = game.scene.getScene(key);
+    if (sc && game.scene.isActive(key)) {
+      const data = sc.scene.settings.data;
+      game.scene.stop(key);
+      game.scene.start(key, data);
+    }
+  });
+});
 
 export default game;

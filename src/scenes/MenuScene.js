@@ -4,6 +4,7 @@ import SaveManager from '../systems/SaveManager.js';
 import IdleManager from '../systems/IdleManager.js';
 import SoundManager from '../systems/SoundManager.js';
 import AchievementManager from '../systems/AchievementManager.js';
+import { t } from '../i18n/index.js';
 
 /**
  * MenuScene — Ana Menü (açılış) + Ayarlar/Pause (oyun içi).
@@ -35,12 +36,12 @@ export default class MenuScene extends Phaser.Scene {
       .setDepth(400).setInteractive();
 
     // Başlık
-    this.add.text(this.cx, 64, 'IDLE KINGDOM DEFENSE', {
+    this.add.text(this.cx, 64, t('menu.titleGame'), {
       fontSize: '22px', fontFamily: 'monospace', color: '#ffd700',
       stroke: '#000', strokeThickness: 3,
     }).setOrigin(0.5).setDepth(401);
 
-    this.add.text(this.cx, 92, this.mode === 'start' ? '— Ana Menü —' : '— Duraklatıldı —', {
+    this.add.text(this.cx, 92, this.mode === 'start' ? t('menu.subtitleStart') : t('menu.subtitlePause'), {
       fontSize: '12px', fontFamily: 'monospace', color: '#9b59b6',
       stroke: '#000', strokeThickness: 1,
     }).setOrigin(0.5).setDepth(401);
@@ -55,25 +56,25 @@ export default class MenuScene extends Phaser.Scene {
 
     if (this.mode === 'start') {
       specs.push({
-        label: this.hasSave ? '▶  Devam Et (Kayıtlı Oyun)' : '▶  Kayıt Bulunamadı',
+        label: this.hasSave ? t('menu.continueSaved') : t('menu.noSave'),
         color: this.hasSave ? 0x1a6a1a : CONFIG.COLORS.UI_BUTTON_DISABLED,
         onClick: this.hasSave ? () => this.continueGame() : null,
       });
-      specs.push({ label: '✦  Yeni Oyun', color: CONFIG.COLORS.UI_BUTTON, onClick: () => this.newGame() });
+      specs.push({ label: t('menu.newGame'), color: CONFIG.COLORS.UI_BUTTON, onClick: () => this.newGame() });
     } else {
-      specs.push({ label: '▶  Devam Et', color: 0x1a6a1a, onClick: () => this.resumeGame() });
-      specs.push({ label: '💾  Kaydet', color: CONFIG.COLORS.UI_BUTTON, onClick: () => this.saveGame() });
+      specs.push({ label: t('menu.resume'), color: 0x1a6a1a, onClick: () => this.resumeGame() });
+      specs.push({ label: t('menu.save'), color: CONFIG.COLORS.UI_BUTTON, onClick: () => this.saveGame() });
       specs.push({
-        label: '📂  Yükle',
+        label: t('menu.load'),
         color: this.hasSave ? CONFIG.COLORS.UI_BUTTON : CONFIG.COLORS.UI_BUTTON_DISABLED,
         onClick: this.hasSave ? () => this.loadGame() : null,
       });
-      specs.push({ label: '✦  Yeni Oyun', color: CONFIG.COLORS.UI_BUTTON, onClick: () => this.newGame() });
+      specs.push({ label: t('menu.newGame'), color: CONFIG.COLORS.UI_BUTTON, onClick: () => this.newGame() });
     }
 
     // Başarımlar (her iki modda)
     specs.push({
-      label: `🏆  Başarımlar (${AchievementManager.unlockedCount()}/${AchievementManager.total()})`,
+      label: t('menu.achievements', { unlocked: AchievementManager.unlockedCount(), total: AchievementManager.total() }),
       color: CONFIG.COLORS.UI_BUTTON, onClick: () => this.openAchievements(),
     });
 
@@ -124,7 +125,7 @@ export default class MenuScene extends Phaser.Scene {
   /** Kayıtlı oyunu yükleyip başlat (açılış modu). */
   continueGame() {
     const saved = SaveManager.load();
-    if (!saved) { this.showToast('Kayıt bulunamadı'); return; }
+    if (!saved) { this.showToast(t('menu.toastNoSave')); return; }
     SaveManager.applyLoad(saved);
 
     // Offline/idle kazancı — GameScene popup olarak gösterir
@@ -144,7 +145,7 @@ export default class MenuScene extends Phaser.Scene {
       this.startGame();
     };
     if (this.hasSave) {
-      this.showConfirm('Mevcut kaydın silinecek.\nYeni oyuna başlansın mı?', start);
+      this.showConfirm(t('menu.confirmNewGame'), start);
     } else {
       start();
     }
@@ -169,14 +170,14 @@ export default class MenuScene extends Phaser.Scene {
   saveGame() {
     const ok = SaveManager.save();
     this.hasSave = ok || this.hasSave;
-    this.showToast(ok ? '✓ Kaydedildi' : '✗ Kayıt başarısız');
+    this.showToast(ok ? t('menu.toastSaveOk') : t('menu.toastSaveFail'));
   }
 
   /** Son kayda dön (pause modu) — mevcut ilerlemeyi son kayıtla değiştirir. */
   loadGame() {
     const saved = SaveManager.load();
-    if (!saved) { this.showToast('Kayıt bulunamadı'); return; }
-    this.showConfirm('Son kayda dönülecek.\nMevcut ilerleme kaybolabilir. Devam?', () => {
+    if (!saved) { this.showToast(t('menu.toastNoSave')); return; }
+    this.showConfirm(t('menu.confirmLoad'), () => {
       SaveManager.applyLoad(saved);
       this.startGame();
     });
@@ -189,7 +190,7 @@ export default class MenuScene extends Phaser.Scene {
   }
 
   soundLabel() {
-    return `🔊  Efekt Sesi: ${SoundManager.isEnabled() ? 'Açık' : 'Kapalı'}`;
+    return SoundManager.isEnabled() ? t('menu.soundOn') : t('menu.soundOff');
   }
 
   // ═══════════════ Onay / Toast ═══════════════
@@ -207,22 +208,22 @@ export default class MenuScene extends Phaser.Scene {
 
     const bg = this.add.rectangle(cx, cy, w, h, 0x0a0a1a, 0.98).setDepth(430).setStrokeStyle(2, CONFIG.COLORS.UI_GOLD);
     const title = this.add.text(cx, top + 20,
-      `🏆 Başarımlar (${AchievementManager.unlockedCount()}/${AchievementManager.total()})`,
+      t('menu.achievements', { unlocked: AchievementManager.unlockedCount(), total: AchievementManager.total() }),
       this._ts(14, '#ffd700')).setOrigin(0.5).setDepth(431);
     const els = [bg, title];
 
     let ly = top + 50;
     for (const a of AchievementManager.getAll()) {
-      const icon = a.unlocked ? '✓' : '🔒';
+      const icon = a.unlocked ? t('menu.achUnlocked') : t('menu.achLocked');
       const color = a.unlocked ? '#66ff99' : '#777777';
-      const line = this.add.text(cx - w / 2 + 16, ly, `${icon} ${a.name} — ${a.desc}`, this._ts(11, color))
+      const line = this.add.text(cx - w / 2 + 16, ly, `${icon} ${t(`achievement.${a.id}.name`)} — ${t(`achievement.${a.id}.desc`)}`, this._ts(11, color))
         .setOrigin(0, 0.5).setDepth(431);
       els.push(line);
       ly += 26;
     }
 
     const closeBg = this.add.rectangle(cx, cy + h / 2 - 22, 120, 30, 0x444466).setDepth(431).setInteractive({ useHandCursor: true });
-    const closeTxt = this.add.text(cx, cy + h / 2 - 22, 'KAPAT', this._ts(12, '#ffffff')).setOrigin(0.5).setDepth(432);
+    const closeTxt = this.add.text(cx, cy + h / 2 - 22, t('menu.close'), this._ts(12, '#ffffff')).setOrigin(0.5).setDepth(432);
     els.push(closeBg, closeTxt);
     const close = () => { els.forEach(e => e.destroy()); this.achvPanel = null; };
     closeBg.on('pointerdown', close);
@@ -242,9 +243,9 @@ export default class MenuScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(411);
 
     const yesBg = this.add.rectangle(cx - 70, cy + 40, 110, 32, 0xe94560).setDepth(411).setInteractive({ useHandCursor: true });
-    const yesTxt = this.add.text(cx - 70, cy + 40, 'EVET', { fontSize: '13px', fontFamily: 'monospace', color: '#ffffff' }).setOrigin(0.5).setDepth(412);
+    const yesTxt = this.add.text(cx - 70, cy + 40, t('menu.yes'), { fontSize: '13px', fontFamily: 'monospace', color: '#ffffff' }).setOrigin(0.5).setDepth(412);
     const noBg = this.add.rectangle(cx + 70, cy + 40, 110, 32, 0x444466).setDepth(411).setInteractive({ useHandCursor: true });
-    const noTxt = this.add.text(cx + 70, cy + 40, 'VAZGEÇ', { fontSize: '13px', fontFamily: 'monospace', color: '#ffffff' }).setOrigin(0.5).setDepth(412);
+    const noTxt = this.add.text(cx + 70, cy + 40, t('menu.no'), { fontSize: '13px', fontFamily: 'monospace', color: '#ffffff' }).setOrigin(0.5).setDepth(412);
 
     const close = () => { [bg, msg, yesBg, yesTxt, noBg, noTxt].forEach(e => e.destroy()); this.dialog = null; };
     yesBg.on('pointerdown', () => { close(); onYes(); });

@@ -2,6 +2,7 @@ import GameState from '../state/GameState.js';
 import EconomyManager from './EconomyManager.js';
 import { calculateValue } from '../utils/MathUtils.js';
 import { CONFIG } from '../config.js';
+import { t } from '../i18n/index.js';
 
 /**
  * UpgradeManager — Yükseltme işlemleri, efekt hesaplama, UI verisi.
@@ -63,11 +64,7 @@ const UpgradeManager = {
   },
 
   getStatLabel(statName) {
-    const labels = {
-      damage: 'Damage', fireRate: 'Fire Rate', range: 'Range',
-      blastRadius: 'Blast Radius', reloadSpeed: 'Reload Speed',
-    };
-    return labels[statName] || statName;
+    return t(`statLabel.${statName}`);
   },
 
   /** Yükseltme satın al (proxy). */

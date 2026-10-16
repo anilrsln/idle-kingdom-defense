@@ -12,6 +12,7 @@ import FrostTower from '../entities/FrostTower.js';
 import Catapult from '../entities/Catapult.js';
 import { formatNumber } from '../utils/NumberFormatter.js';
 import AssetProvider from '../systems/AssetProvider.js';
+import { t as i18n } from '../i18n/index.js';
 
 /**
  * GameScene — Ana savaş alanı.
@@ -97,31 +98,31 @@ export default class GameScene extends Phaser.Scene {
     const bg = this.add.rectangle(cx, cy, 320, 180, 0x0a0a2a, 0.95).setDepth(300).setStrokeStyle(2, 0xffd700);
     const hours = Math.floor(earnings.elapsedSeconds / 3600);
     const mins = Math.floor((earnings.elapsedSeconds % 3600) / 60);
-    const timeStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+    const timeStr = hours > 0 ? i18n('idle.timeHM', { h: hours, m: mins }) : i18n('idle.timeM', { m: mins });
 
-    const title = this.add.text(cx, cy - 60, '⏰ Welcome Back!', {
+    const title = this.add.text(cx, cy - 60, i18n('idle.welcomeBack'), {
       fontSize: '18px', fontFamily: 'monospace', color: '#ffd700',
       stroke: '#000', strokeThickness: 2,
     }).setOrigin(0.5).setDepth(301);
 
-    const info = this.add.text(cx, cy - 25, `You were away for ${timeStr}`, {
+    const info = this.add.text(cx, cy - 25, i18n('idle.awayFor', { time: timeStr }), {
       fontSize: '12px', fontFamily: 'monospace', color: '#aaaaaa',
       stroke: '#000', strokeThickness: 1,
     }).setOrigin(0.5).setDepth(301);
 
-    const expLine = this.add.text(cx, cy + 5, `⚡ +${formatNumber(earnings.exp)} EXP`, {
+    const expLine = this.add.text(cx, cy + 5, i18n('idle.expGain', { n: formatNumber(earnings.exp) }), {
       fontSize: '16px', fontFamily: 'monospace', color: '#ffd700',
       stroke: '#000', strokeThickness: 1,
     }).setOrigin(0.5).setDepth(301);
 
-    const foodLine = this.add.text(cx, cy + 30, `🍖 +${formatNumber(earnings.food)} Food`, {
+    const foodLine = this.add.text(cx, cy + 30, i18n('idle.foodGain', { n: formatNumber(earnings.food) }), {
       fontSize: '16px', fontFamily: 'monospace', color: '#66ff66',
       stroke: '#000', strokeThickness: 1,
     }).setOrigin(0.5).setDepth(301);
 
     // Topla butonu
     const collectBtn = this.add.rectangle(cx, cy + 65, 120, 30, 0x1a6a1a).setDepth(302).setInteractive({ useHandCursor: true });
-    const collectLabel = this.add.text(cx, cy + 65, 'COLLECT', {
+    const collectLabel = this.add.text(cx, cy + 65, i18n('idle.collect'), {
       fontSize: '14px', fontFamily: 'monospace', color: '#ffffff',
       stroke: '#000', strokeThickness: 1,
     }).setOrigin(0.5).setDepth(303);
@@ -312,10 +313,10 @@ export default class GameScene extends Phaser.Scene {
   // ═══════════════ Olaylar ═══════════════
   onEnemyKilled(data) {
     if (data.exp > 0) {
-      this.showFloatingText(`+${Math.floor(data.exp)} EXP`, data.x, data.y - 10, CONFIG.COLORS.UI_GOLD);
+      this.showFloatingText(i18n('game.expGain', { n: Math.floor(data.exp) }), data.x, data.y - 10, CONFIG.COLORS.UI_GOLD);
     }
     if (data.food > 0) {
-      this.showFloatingText(`+${Math.floor(data.food)} Food`, data.x, data.y + 5, CONFIG.COLORS.ENEMY_FOOD);
+      this.showFloatingText(i18n('game.foodGain', { n: Math.floor(data.food) }), data.x, data.y + 5, CONFIG.COLORS.ENEMY_FOOD);
     }
     // Ölüm parçacık efekti
     this.spawnDeathParticles(data.x, data.y, data.killedBy);
@@ -325,19 +326,19 @@ export default class GameScene extends Phaser.Scene {
       this.cameras.main.shake(big ? 350 : 180, big ? 0.016 : 0.008);
     }
     if (data.type === 'boss') {
-      this.showFloatingText('★ BOSS DEFEATED! ★', CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2 - 40, 0xffd700, 26, 1800);
+      this.showFloatingText(i18n('game.bossDefeated'), CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2 - 40, 0xffd700, 26, 1800);
     }
   }
 
   /** Kritik vuruşta "CRIT!" bildirimi. */
   onCritHit(data) {
-    this.showFloatingText('CRIT!', data.x, data.y - 16, 0xff8800, 16, 700);
+    this.showFloatingText(i18n('game.crit'), data.x, data.y - 16, 0xff8800, 16, 700);
   }
 
   /** Boss dalgası girişinde duyuru. */
   onBossWave(data) {
-    const bossName = data.bossType ? (CONFIG.ENEMIES[data.bossType]?.name || 'BOSS') : 'BOSS';
-    this.showFloatingText(`⚠ ${bossName} — Wave ${data.wave}`, CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2 - 50, 0xff4444, 24, 2000);
+    const bossName = data.bossType ? i18n(`enemy.${data.bossType}`) : i18n('game.boss');
+    this.showFloatingText(i18n('game.bossWave', { boss: bossName, wave: data.wave }), CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2 - 50, 0xff4444, 24, 2000);
     this.game.events.emit('sfx', 'prestige');
   }
 
@@ -368,7 +369,7 @@ export default class GameScene extends Phaser.Scene {
 
   onWaveComplete(data) {
     this.showFloatingText(
-      `Wave ${data.completedWave} Complete!`,
+      i18n('game.waveComplete', { n: data.completedWave }),
       CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2 - 30,
       0xffd700, 24, 1500
     );
@@ -402,7 +403,7 @@ export default class GameScene extends Phaser.Scene {
       this.waveManager.clearAll();
       this.waveManager.calculateWaveEnemies();
     }
-    this.showFloatingText(`→ Wave ${wave}`, CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2 - 30, 0x00ffff, 22, 1200);
+    this.showFloatingText(i18n('game.nextWave', { n: wave }), CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2 - 30, 0x00ffff, 22, 1200);
   }
 
   showFloatingText(text, x, y, color = 0xffffff, size = 14, duration = 800) {

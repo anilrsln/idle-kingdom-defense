@@ -5,6 +5,7 @@ import UpgradeManager from '../systems/UpgradeManager.js';
 import EconomyManager from '../systems/EconomyManager.js';
 import PrestigeManager from '../systems/PrestigeManager.js';
 import ComboManager from '../systems/ComboManager.js';
+import { t, toggleLocale, getLocale } from '../i18n/index.js';
 
 /**
  * UIScene — HUD overlay + alt yükseltme paneli.
@@ -38,7 +39,7 @@ export default class UIScene extends Phaser.Scene {
     // MAP butonu (üst bar sağ taraf)
     const mapBtn = this.add.rectangle(660, 15, 50, 22, CONFIG.COLORS.UI_ACCENT).setDepth(102);
     this.enlargeHit(mapBtn, 54, 40);
-    this.add.text(660, 15, '⚔ MAP', this.textStyle(10, '#ffffff')).setOrigin(0.5).setDepth(103);
+    this.add.text(660, 15, t('ui.mapBtn'), this.textStyle(10, '#ffffff')).setOrigin(0.5).setDepth(103);
     mapBtn.on('pointerdown', () => this.openConquestMap());
     mapBtn.on('pointerover', () => mapBtn.setFillStyle(0xff6680));
     mapBtn.on('pointerout', () => mapBtn.setFillStyle(CONFIG.COLORS.UI_ACCENT));
@@ -46,7 +47,7 @@ export default class UIScene extends Phaser.Scene {
     // Prestige butonu (MAP'ın solunda, sadece unlock olunca görünür)
     this.prestigeBtn = this.add.rectangle(595, 15, 60, 22, 0x9b59b6).setDepth(102).setVisible(false);
     this.enlargeHit(this.prestigeBtn, 64, 40);
-    this.prestigeBtnLabel = this.add.text(595, 15, '✦ PRESTIGE', this.textStyle(9, '#ffffff')).setOrigin(0.5).setDepth(103).setVisible(false);
+    this.prestigeBtnLabel = this.add.text(595, 15, t('ui.prestigeBtn'), this.textStyle(9, '#ffffff')).setOrigin(0.5).setDepth(103).setVisible(false);
     this.prestigeBtn.on('pointerdown', () => this.showPrestigeDialog());
     this.prestigeBtn.on('pointerover', () => this.prestigeBtn.setFillStyle(0xb07cc8));
     this.prestigeBtn.on('pointerout', () => this.prestigeBtn.setFillStyle(0x9b59b6));
@@ -59,6 +60,15 @@ export default class UIScene extends Phaser.Scene {
     this.menuBtn.on('pointerdown', () => this.openMenu());
     this.menuBtn.on('pointerover', () => this.menuBtn.setFillStyle(CONFIG.COLORS.UI_BUTTON_HOVER));
     this.menuBtn.on('pointerout', () => this.menuBtn.setFillStyle(CONFIG.COLORS.UI_BUTTON));
+
+    // Dil toggle butonu (TR ⇄ EN) — menü butonunun solunda
+    this.langBtn = this.add.rectangle(752, 15, 30, 22, 0x2a2a4a, 1).setDepth(102);
+    this.enlargeHit(this.langBtn, 40, 40);
+    this.langBtnLabel = this.add.text(752, 15, t('ui.langBtn'), this.textStyle(10, '#ffffff'))
+      .setOrigin(0.5).setDepth(103);
+    this.langBtn.on('pointerdown', () => { toggleLocale(); this.game.events.emit('sfx', 'uiClick'); });
+    this.langBtn.on('pointerover', () => this.langBtn.setFillStyle(0x3a3a5a));
+    this.langBtn.on('pointerout', () => this.langBtn.setFillStyle(0x2a2a4a));
 
     // Prestige dialog elementleri
     this.prestigeDialog = null;
@@ -151,8 +161,8 @@ export default class UIScene extends Phaser.Scene {
     if (this._achvToast) this._achvToast.forEach(e => e.destroy());
     const cx = CONFIG.CANVAS_WIDTH / 2, y = 56;
     const bg = this.add.rectangle(cx, y, 270, 40, 0x1a1a2e, 0.96).setDepth(250).setStrokeStyle(2, CONFIG.COLORS.UI_GOLD);
-    const title = this.add.text(cx, y - 8, `🏆 ${data.name}`, this.textStyle(12, '#ffd700')).setOrigin(0.5).setDepth(251);
-    const desc = this.add.text(cx, y + 8, data.desc, this.textStyle(9, '#cccccc')).setOrigin(0.5).setDepth(251);
+    const title = this.add.text(cx, y - 8, `🏆 ${t(`achievement.${data.id}.name`)}`, this.textStyle(12, '#ffd700')).setOrigin(0.5).setDepth(251);
+    const desc = this.add.text(cx, y + 8, t(`achievement.${data.id}.desc`), this.textStyle(9, '#cccccc')).setOrigin(0.5).setDepth(251);
     const els = [bg, title, desc];
     this._achvToast = els;
     els.forEach(e => e.setAlpha(0));
@@ -186,7 +196,7 @@ export default class UIScene extends Phaser.Scene {
 
   // ═══════ SEKMELER ═══════
   createTabs() {
-    const tabNames = { laser: 'Laser', archer: 'Archer', cannon: 'Cannon', frost: 'Frost', catapult: 'Catapult', economy: 'Ekonomi' };
+    const tabNames = { laser: t('ui.tab.laser'), archer: t('ui.tab.archer'), cannon: t('ui.tab.cannon'), frost: t('ui.tab.frost'), catapult: t('ui.tab.catapult'), economy: t('ui.tab.economy') };
     const tabWidth = 78, tabHeight = 22, startX = 10, tabY = this.panelY + 5;
 
     this.tabs.forEach((type, i) => {
@@ -226,9 +236,9 @@ export default class UIScene extends Phaser.Scene {
 
     // Conquest kilidi (Cannon / Frost / Catapult)
     if (info.conquestLocked) {
-      const nodeHint = { cannon: 'Cannon Unlock', frost: 'Frost Tower Unlock', catapult: 'Catapult Unlock' };
+      const nodeName = t(`ui.nodeHint.${this.activeTab}`) || t('ui.nodeHint.default');
       const lockText = this.add.text(CONFIG.CANVAS_WIDTH / 2, startY + 30,
-        `🔒 Conquest Map'te "${nodeHint[this.activeTab] || 'Unlock'}" düğümünü satın al`,
+        t('ui.conquestLock', { node: nodeName }),
         this.textStyle(12, '#888888')
       ).setOrigin(0.5).setDepth(102);
       this.upgradeElements.push(lockText);
@@ -238,7 +248,7 @@ export default class UIScene extends Phaser.Scene {
     // Kilitli defender
     if (!info.unlocked) {
       const lockText = this.add.text(CONFIG.CANVAS_WIDTH / 2, startY + 25,
-        `Hire first ${CONFIG.DEFENDERS[this.activeTab].name} (${formatNumber(info.hireCost)} Food)`,
+        t('ui.hireFirst', { name: t(`defender.${this.activeTab}`), cost: formatNumber(info.hireCost) }),
         this.textStyle(13, '#aaaaaa')
       ).setOrigin(0.5).setDepth(102);
       this.upgradeElements.push(lockText);
@@ -256,7 +266,7 @@ export default class UIScene extends Phaser.Scene {
       const y = startY;
 
       // Stat etiketi
-      const lbl = this.add.text(x, y, `${stat.label} Lv.${stat.level}`, this.textStyle(10, '#cccccc')).setDepth(102);
+      const lbl = this.add.text(x, y, `${stat.label} ${t('ui.level', { n: stat.level })}`, this.textStyle(10, '#cccccc')).setDepth(102);
       this.upgradeElements.push(lbl);
 
       // Değer
@@ -269,7 +279,7 @@ export default class UIScene extends Phaser.Scene {
       const btnY = y + 38;
       const color = stat.canAfford ? CONFIG.COLORS.UI_BUTTON : CONFIG.COLORS.UI_BUTTON_DISABLED;
       const bg = this.add.rectangle(btnX, btnY, btnWidth, 22, color, 1).setDepth(102).setInteractive({ useHandCursor: true });
-      const costLabel = this.add.text(btnX, btnY, `${formatNumber(stat.cost)} EXP`, this.textStyle(10, stat.canAfford ? '#ffd700' : '#666666')).setOrigin(0.5).setDepth(103);
+      const costLabel = this.add.text(btnX, btnY, t('ui.costExp', { n: formatNumber(stat.cost) }), this.textStyle(10, stat.canAfford ? '#ffd700' : '#666666')).setOrigin(0.5).setDepth(103);
 
       bg.on('pointerdown', () => {
         if (UpgradeManager.purchaseUpgrade(this.activeTab, stat.name)) {
@@ -318,13 +328,13 @@ export default class UIScene extends Phaser.Scene {
       const x = startX + i * (btnWidth + 8);
       const y = startY;
 
-      const lbl = this.add.text(x, y, `${cfg.name} Lv.${level}`, this.textStyle(10, '#cccccc')).setDepth(102);
+      const lbl = this.add.text(x, y, `${t(`economy.${key}`)} ${t('ui.level', { n: level })}`, this.textStyle(10, '#cccccc')).setDepth(102);
       const valText = this.add.text(x, y + 14, `${curMult.toFixed(2)}x → ${nextMult.toFixed(2)}x`, this.textStyle(9, '#888888')).setDepth(102);
 
       const btnX = x + btnWidth / 2, btnY = y + 38;
       const color = canAfford ? CONFIG.COLORS.UI_BUTTON : CONFIG.COLORS.UI_BUTTON_DISABLED;
       const bg = this.add.rectangle(btnX, btnY, btnWidth, 22, color, 1).setDepth(102).setInteractive({ useHandCursor: true });
-      const costLabel = this.add.text(btnX, btnY, `${formatNumber(cost)} EXP`, this.textStyle(10, canAfford ? '#ffd700' : '#666666')).setOrigin(0.5).setDepth(103);
+      const costLabel = this.add.text(btnX, btnY, t('ui.costExp', { n: formatNumber(cost) }), this.textStyle(10, canAfford ? '#ffd700' : '#666666')).setOrigin(0.5).setDepth(103);
 
       bg.on('pointerdown', () => {
         if (EconomyManager.purchaseEconomyUpgrade(key)) {
@@ -346,8 +356,8 @@ export default class UIScene extends Phaser.Scene {
     const bg = this.add.rectangle(x, y, 130, 26, color, 1).setDepth(102).setInteractive({ useHandCursor: true });
 
     const labelStr = info.unlocked
-      ? `Hire +1 (${formatNumber(info.hireCost)} Food)`
-      : `Unlock (${formatNumber(info.hireCost)} Food)`;
+      ? t('ui.hirePlus', { cost: formatNumber(info.hireCost) })
+      : t('ui.unlock', { cost: formatNumber(info.hireCost) });
     const label = this.add.text(x, y, labelStr, this.textStyle(10, canHire ? '#66ff66' : '#666666')).setOrigin(0.5).setDepth(103);
 
     bg.on('pointerdown', () => {
@@ -378,7 +388,7 @@ export default class UIScene extends Phaser.Scene {
     const cy = CONFIG.CANVAS_HEIGHT / 2;
 
     const bg = this.add.rectangle(cx, cy, 340, 200, 0x0a0a2a, 0.95).setDepth(300).setStrokeStyle(2, 0x9b59b6);
-    const title = this.add.text(cx, cy - 70, '✦ PRESTIGE ✦', {
+    const title = this.add.text(cx, cy - 70, t('ui.prestigeTitle'), {
       fontSize: '20px', fontFamily: 'monospace', color: '#9b59b6',
       stroke: '#000', strokeThickness: 2,
     }).setOrigin(0.5).setDepth(301);
@@ -387,11 +397,11 @@ export default class UIScene extends Phaser.Scene {
     const nextMult = PrestigeManager.getNextMultiplier();
 
     const info = this.add.text(cx, cy - 30, [
-      `Current Multiplier: ${currentMult.toFixed(1)}x`,
-      `After Prestige: ${nextMult.toFixed(1)}x`,
+      t('ui.prestigeCurrent', { n: currentMult.toFixed(1) }),
+      t('ui.prestigeAfter', { n: nextMult.toFixed(1) }),
       '',
-      'All progress will be RESET!',
-      'Multiplier is permanent.',
+      t('ui.prestigeResetWarn'),
+      t('ui.prestigePermanent'),
     ].join('\n'), {
       fontSize: '11px', fontFamily: 'monospace', color: '#cccccc',
       stroke: '#000', strokeThickness: 1, align: 'center',
@@ -399,7 +409,7 @@ export default class UIScene extends Phaser.Scene {
 
     // Onayla butonu
     const confirmBtn = this.add.rectangle(cx - 60, cy + 65, 100, 28, 0x9b59b6).setDepth(302).setInteractive({ useHandCursor: true });
-    const confirmLbl = this.add.text(cx - 60, cy + 65, 'PRESTIGE', this.textStyle(11, '#ffffff')).setOrigin(0.5).setDepth(303);
+    const confirmLbl = this.add.text(cx - 60, cy + 65, t('ui.confirm'), this.textStyle(11, '#ffffff')).setOrigin(0.5).setDepth(303);
     confirmBtn.on('pointerdown', () => {
       this.closePrestigeDialog();
       this.doPrestige();
@@ -409,7 +419,7 @@ export default class UIScene extends Phaser.Scene {
 
     // İptal butonu
     const cancelBtn = this.add.rectangle(cx + 60, cy + 65, 100, 28, 0x444466).setDepth(302).setInteractive({ useHandCursor: true });
-    const cancelLbl = this.add.text(cx + 60, cy + 65, 'CANCEL', this.textStyle(11, '#ffffff')).setOrigin(0.5).setDepth(303);
+    const cancelLbl = this.add.text(cx + 60, cy + 65, t('ui.cancel'), this.textStyle(11, '#ffffff')).setOrigin(0.5).setDepth(303);
     cancelBtn.on('pointerdown', () => this.closePrestigeDialog());
     cancelBtn.on('pointerover', () => cancelBtn.setFillStyle(0x555577));
     cancelBtn.on('pointerout', () => cancelBtn.setFillStyle(0x444466));
@@ -463,10 +473,10 @@ export default class UIScene extends Phaser.Scene {
     const delta = deltaMs / 1000;
 
     // HUD texleri
-    this.expText.setText(`⚡ ${formatNumber(GameState.resources.exp)} EXP`);
-    this.foodText.setText(`🍖 ${formatNumber(GameState.resources.food)} Food`);
-    this.waveText.setText(`Wave ${GameState.wave.current}`);
-    this.enemyText.setText(`E: ${GameState.wave.enemiesKilled}/${GameState.wave.enemiesInWave}`);
+    this.expText.setText(`⚡ ${t('ui.exp', { n: formatNumber(GameState.resources.exp) })}`);
+    this.foodText.setText(`🍖 ${t('ui.food', { n: formatNumber(GameState.resources.food) })}`);
+    this.waveText.setText(t('ui.wave', { n: GameState.wave.current }));
+    this.enemyText.setText(t('ui.enemies', { killed: GameState.wave.enemiesKilled, total: GameState.wave.enemiesInWave }));
 
     // Wave progress bar
     const waveProgress = GameState.wave.enemiesInWave > 0
@@ -477,13 +487,13 @@ export default class UIScene extends Phaser.Scene {
     } else {
       this.prestigeText.setText('');
     }
-    this.fpsText.setText(`${Math.round(this.game.loop.actualFps)} FPS`);
+    this.fpsText.setText(t('ui.fps', { n: Math.round(this.game.loop.actualFps) }));
 
     // Combo göstergesi — 2+ combo'da görünür, pencere azaldıkça soluklaşır
     const combo = ComboManager.getCombo();
     if (combo >= 2) {
       const mult = ComboManager.getMultiplier();
-      this.comboText.setText(`x${combo} COMBO  (+${Math.round((mult - 1) * 100)}%)`);
+      this.comboText.setText(t('ui.combo', { n: combo, pct: Math.round((mult - 1) * 100) }));
       this.comboText.setAlpha(0.35 + 0.65 * ComboManager.getTimerFraction());
     } else {
       this.comboText.setAlpha(0);

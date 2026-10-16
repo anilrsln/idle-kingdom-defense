@@ -2,6 +2,7 @@ import { CONFIG } from '../config.js';
 import GameState from '../state/GameState.js';
 import ConquestManager from '../systems/ConquestManager.js';
 import { formatNumber } from '../utils/NumberFormatter.js';
+import { t } from '../i18n/index.js';
 
 /**
  * ConquestScene — Skill tree / Fetih Haritası.
@@ -21,7 +22,7 @@ export default class ConquestScene extends Phaser.Scene {
     this.add.rectangle(W / 2, H / 2, W, H, 0x0a0a1a, 0.97).setDepth(200).setInteractive();
 
     // ── Başlık (sabit) ──
-    this.add.text(W / 2, 25, '⚔ CONQUEST MAP ⚔', {
+    this.add.text(W / 2, 25, t('conquestMap.title'), {
       fontSize: '20px', fontFamily: 'monospace', color: '#ffd700',
       stroke: '#000', strokeThickness: 2,
     }).setOrigin(0.5).setDepth(210);
@@ -31,13 +32,13 @@ export default class ConquestScene extends Phaser.Scene {
 
     // Kapat butonu
     const cb = this.add.rectangle(770, 25, 56, 26, 0xe94560).setDepth(210).setInteractive({ useHandCursor: true });
-    this.add.text(770, 25, 'CLOSE', this.ts(11, '#fff')).setOrigin(0.5).setDepth(211);
+    this.add.text(770, 25, t('conquestMap.close'), this.ts(11, '#fff')).setOrigin(0.5).setDepth(211);
     cb.on('pointerdown', () => this.closeMap());
     cb.on('pointerover',  () => cb.setFillStyle(0xff6680));
     cb.on('pointerout',   () => cb.setFillStyle(0xe94560));
 
     // Scroll ipucu
-    this.scrollHint = this.add.text(W / 2, H - 8, '▼ kaydır ▼', this.ts(9, '#556')).setOrigin(0.5).setDepth(210);
+    this.scrollHint = this.add.text(W / 2, H - 8, t('conquestMap.scrollHint'), this.ts(9, '#556')).setOrigin(0.5).setDepth(210);
 
     // ── Scroll container (tüm node içeriği buraya) ──
     // Başlangıç y = HEADER_H (başlığın hemen altı)
@@ -96,7 +97,8 @@ export default class ConquestScene extends Phaser.Scene {
     this.nodeElements = [];
 
     for (const node of ConquestManager.getAllNodesInfo()) {
-      const { x, y, name, unlocked, available, canPurchase, cost } = node;
+      const { x, y, id, unlocked, available, canPurchase, cost } = node;
+      const name = t(`conquest.${id}.name`);
 
       let bgCol, txtCol;
       if (unlocked)         { bgCol = 0x1a5c1a; txtCol = '#00ff00'; }
@@ -115,11 +117,11 @@ export default class ConquestScene extends Phaser.Scene {
       const shortName = name.length > 17 ? name.substring(0, 16) + '…' : name;
       const lbl = this.add.text(x, y - 6, shortName, this.ts(10, txtCol)).setOrigin(0.5).setDepth(3);
 
-      let costStr = unlocked ? '✓ Unlocked' : '';
+      let costStr = unlocked ? t('conquestMap.unlocked') : '';
       if (!unlocked) {
         const parts = [];
-        if (cost.exp)  parts.push(`${formatNumber(cost.exp)} EXP`);
-        if (cost.food) parts.push(`${formatNumber(cost.food)} Food`);
+        if (cost.exp)  parts.push(t('ui.exp', { n: formatNumber(cost.exp) }));
+        if (cost.food) parts.push(t('ui.food', { n: formatNumber(cost.food) }));
         costStr = parts.join(' + ');
       }
       const sub = this.add.text(x, y + 9, costStr, this.ts(8, unlocked ? '#66ff88' : '#666688')).setOrigin(0.5).setDepth(3);
@@ -174,7 +176,7 @@ export default class ConquestScene extends Phaser.Scene {
 
   showTip(node, x, y) {
     this.hideTip();
-    const desc = node.description || '';
+    const desc = t(`conquest.${node.id}.description`) || '';
     const tb = this.add.rectangle(x, y, 200, 28, 0x000000, 0.92).setDepth(10);
     const tt = this.add.text(x, y, desc, this.ts(9, '#eeeeff')).setOrigin(0.5).setDepth(11);
     this.sc.add([tb, tt]);
@@ -191,7 +193,7 @@ export default class ConquestScene extends Phaser.Scene {
   }
 
   update() {
-    this.expLabel.setText(`⚡ ${formatNumber(GameState.resources.exp)} EXP`);
-    this.foodLabel.setText(`🍖 ${formatNumber(GameState.resources.food)} Food`);
+    this.expLabel.setText(`⚡ ${t('ui.exp', { n: formatNumber(GameState.resources.exp) })}`);
+    this.foodLabel.setText(`🍖 ${t('ui.food', { n: formatNumber(GameState.resources.food) })}`);
   }
 }
