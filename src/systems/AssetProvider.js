@@ -21,13 +21,13 @@ const DISPLAY_SIZES = {
   'enemy-boss_splitter':  { w: 104, h: 104 },
   'enemy-boss_armored':   { w: 96, h: 96 },
   // defenders
-  'defender-laser':       { w: 24, h: 48 },
+  'defender-laser':       { w: 36, h: 72 },
   'defender-archer':      { w: 57, h: 57 },   // 3/4 boyut
   'defender-cannon':      { w: 32, h: 42 },
   'defender-frost':       { w: 28, h: 48 },
   'defender-catapult':    { w: 36, h: 30 },
   // projectiles
-  'projectile-arrow':     { w: 3, h: 3 },
+  'projectile-arrow':     { w: 1, h: 1 },
 };
 
 /**

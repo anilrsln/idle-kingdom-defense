@@ -32,7 +32,7 @@ export default class GameScene extends Phaser.Scene {
     this.drawLanes();
 
     // Savunucular
-    this.laserMonument = new LaserMonument(this, 90, 250);
+    this.laserMonument = new LaserMonument(this, 120, 250);
     this.archers = [];
     this.cannons = [];
     this.frostTowers = [];
