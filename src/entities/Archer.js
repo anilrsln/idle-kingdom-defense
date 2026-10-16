@@ -14,6 +14,7 @@ export default class Archer extends Defender {
     this.index = index;
     this.sprite = scene.add.sprite(x, y, 'defender-archer').setDepth(5);
     AssetProvider.applySprite(this.sprite, 'defender-archer');
+    AssetProvider.playAnim(this.sprite, 'defender-archer');
     this.projectiles = [];
     this._shotCount = 0; // Archer Mastery splash sayacı
   }

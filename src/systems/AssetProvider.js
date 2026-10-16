@@ -2,44 +2,56 @@ import { CONFIG } from '../config.js';
 
 /**
  * AssetProvider — CONFIG.ASSETS manifestini Phaser texture'larına çevirir.
- *
- * İki kaynak, tek arayüz:
- *  - `sprite` alanı olan girişler → dosyadan yüklenir (preload).
- *    Bu spritesheet'ler çok büyük frame içerir (192×192 veya 320×320).
- *    Oyun boyutuna getirmek için applySprite() helper'ı kullanılır.
- *  - olmayanlar → geometrik placeholder olarak üretilir (shape/size/color).
- *
- * Oyun kodu her zaman sadece texture anahtarını (`enemy-skeleton` vb.)
- * kullanır; applySprite() çağrısı entity oluştururken 1 satır eklenerek
- * doğru boyut ve frame ayarlanır.
  */
 
 /** Oyun mantığında kullanılacak ekran boyutları (px) */
 const DISPLAY_SIZES = {
-  // enemies — frame 192x192'den oyun boyutuna scale
-  'enemy-skeleton':       { w: 36, h: 36 },
-  'enemy-armored':        { w: 42, h: 42 },
-  'enemy-fast':           { w: 32, h: 32 },
-  'enemy-foodCarrier':    { w: 38, h: 38 },
-  'enemy-elite':          { w: 48, h: 48 },
-  'enemy-shield':         { w: 42, h: 42 },
-  'enemy-splitter':       { w: 38, h: 38 },
-  'enemy-healer':         { w: 36, h: 36 },
-  'enemy-boss_tank':      { w: 80, h: 80 },
-  'enemy-boss_berserker': { w: 90, h: 90 },
-  'enemy-boss_shaman':    { w: 84, h: 84 },
-  'enemy-boss_splitter':  { w: 96, h: 96 },
-  'enemy-boss_armored':   { w: 88, h: 88 },
-  // defenders — bina asset'leri statik (128x256 veya 192x256)
-  'defender-laser':       { w: 24, h: 48 },   // Tower (dar ama yüksek)
-  'defender-archer':      { w: 36, h: 36 },   // Archer unit sprite
-  'defender-cannon':      { w: 32, h: 42 },   // Barracks
-  'defender-frost':       { w: 28, h: 48 },   // Monastery (uzun)
-  'defender-catapult':    { w: 36, h: 30 },   // Castle (geniş)
+  // enemies
+  'enemy-skeleton':       { w: 48, h: 48 },
+  'enemy-armored':        { w: 54, h: 54 },
+  'enemy-fast':           { w: 42, h: 42 },
+  'enemy-foodCarrier':    { w: 50, h: 50 },
+  'enemy-elite':          { w: 64, h: 64 },
+  'enemy-shield':         { w: 54, h: 54 },
+  'enemy-splitter':       { w: 50, h: 50 },
+  'enemy-healer':         { w: 48, h: 48 },
+  'enemy-boss_tank':      { w: 88, h: 88 },
+  'enemy-boss_berserker': { w: 100, h: 100 },
+  'enemy-boss_shaman':    { w: 92, h: 92 },
+  'enemy-boss_splitter':  { w: 104, h: 104 },
+  'enemy-boss_armored':   { w: 96, h: 96 },
+  // defenders
+  'defender-laser':       { w: 24, h: 48 },
+  'defender-archer':      { w: 38, h: 38 },
+  'defender-cannon':      { w: 32, h: 42 },
+  'defender-frost':       { w: 28, h: 48 },
+  'defender-catapult':    { w: 36, h: 30 },
+  // projectiles
+  'projectile-arrow':     { w: 14, h: 14 },
+};
+
+/**
+ * Animasyon tanımları — her key için frameRate ve frameCount.
+ * Phaser anims.create ile kaydedilir, sprite.play(key) ile oynatılır.
+ */
+const ANIM_DEFS = {
+  'enemy-skeleton':       { frameCount: 6, frameRate: 8 },
+  'enemy-armored':        { frameCount: 6, frameRate: 7 },
+  'enemy-fast':           { frameCount: 6, frameRate: 12 },
+  'enemy-foodCarrier':    { frameCount: 6, frameRate: 8 },
+  'enemy-elite':          { frameCount: 6, frameRate: 7 },
+  'enemy-shield':         { frameCount: 6, frameRate: 7 },
+  'enemy-splitter':       { frameCount: 6, frameRate: 9 },
+  'enemy-healer':         { frameCount: 6, frameRate: 8 },
+  'enemy-boss_tank':      { frameCount: 6, frameRate: 6 },
+  'enemy-boss_berserker': { frameCount: 6, frameRate: 7 },
+  'enemy-boss_shaman':    { frameCount: 6, frameRate: 7 },
+  'enemy-boss_splitter':  { frameCount: 6, frameRate: 7 },
+  'enemy-boss_armored':   { frameCount: 6, frameRate: 6 },
+  'defender-archer':      { frameCount: 6, frameRate: 8 },
 };
 
 const AssetProvider = {
-  /** Sprite tabanlı asset'leri yükleme kuyruğuna alır (BootScene.preload). */
   preload(scene) {
     for (const [key, spec] of Object.entries(CONFIG.ASSETS)) {
       if (!spec.sprite) continue;
@@ -48,7 +60,19 @@ const AssetProvider = {
     }
   },
 
-  /** Sprite'ı olmayan girişler için geometrik texture üretir. */
+  /** Spritesheet animasyonlarını Phaser anim manager'a kaydet (GameScene.create sonrası). */
+  createAnims(scene) {
+    for (const [key, def] of Object.entries(ANIM_DEFS)) {
+      if (scene.anims.exists(key)) continue;
+      scene.anims.create({
+        key,
+        frames: scene.anims.generateFrameNumbers(key, { start: 0, end: def.frameCount - 1 }),
+        frameRate: def.frameRate,
+        repeat: -1,
+      });
+    }
+  },
+
   createTextures(scene) {
     for (const [key, spec] of Object.entries(CONFIG.ASSETS)) {
       if (spec.sprite) continue;
@@ -58,30 +82,29 @@ const AssetProvider = {
   },
 
   /**
-   * Phaser Image/Sprite nesnesine doğru frame ve görüntü boyutunu uygular.
-   * Eğer asset bir sprite ise frame 0'ı ve DISPLAY_SIZES boyutunu ayarlar.
-   * Geometrik asset için hiçbir şey yapmaz (zaten doğru boyutta üretilmiş).
-   *
-   * Kullanım (entity constructor'da, setDepth'ten önce veya sonra):
-   *   AssetProvider.applySprite(this.sprite, 'enemy-skeleton');
-   *
-   * @param {Phaser.GameObjects.Image} imageObj - add.image veya add.sprite çağrısından dönen nesne
-   * @param {string} key - CONFIG.ASSETS anahtarı
-   * @param {number} [scaleOverride] - opsiyonel ek scale çarpanı (boss vb.)
+   * Sprite'a doğru frame/boyut uygular.
+   * @param {number} [childScale] — splitter child için 0..1 arası ek scale
    */
-  applySprite(imageObj, key, scaleOverride = 1) {
+  applySprite(imageObj, key, childScale = 1) {
     const spec = CONFIG.ASSETS[key];
-    if (!spec?.sprite) return; // geometrik — dokunma
+    if (!spec?.sprite) return;
     if (typeof imageObj.setFrame === 'function') {
       imageObj.setFrame(0);
     }
     const size = DISPLAY_SIZES[key];
     if (size) {
-      imageObj.setDisplaySize(size.w * scaleOverride, size.h * scaleOverride);
+      imageObj.setDisplaySize(size.w * childScale, size.h * childScale);
     }
   },
 
-  /** Bir key için hedef boyutu döner (geometrik asset'ler null). */
+  /** Animasyonu oynat — anim tanımı yoksa sessizce geçer. */
+  playAnim(sprite, key) {
+    if (!sprite || typeof sprite.play !== 'function') return;
+    if (ANIM_DEFS[key]) {
+      sprite.play(key, true);
+    }
+  },
+
   getDisplaySize(key) {
     return DISPLAY_SIZES[key] ?? null;
   },
@@ -89,7 +112,6 @@ const AssetProvider = {
   _generate(scene, key, spec) {
     const g = scene.make.graphics({ add: false });
     g.fillStyle(spec.color ?? 0xffffff, 1);
-
     switch (spec.shape) {
       case 'rect': {
         const w = spec.width, h = spec.height;

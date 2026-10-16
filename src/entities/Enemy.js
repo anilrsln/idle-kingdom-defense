@@ -42,8 +42,10 @@ export default class Enemy {
 
     const spawnX = options.spawnX ?? CONFIG.SPAWN_X;
     this.sprite = scene.add.sprite(spawnX, laneY, `enemy-${type}`).setDepth(10).setAlpha(0);
-    AssetProvider.applySprite(this.sprite, `enemy-${type}`);
-    if (options.scale) this.sprite.setScale(options.scale);
+    // childScale: splitter child icin DISPLAY_SIZES uzerine oransal kucultme
+    const childScale = options.scale ?? 1;
+    AssetProvider.applySprite(this.sprite, `enemy-${type}`, childScale);
+    AssetProvider.playAnim(this.sprite, `enemy-${type}`);
     scene.tweens.add({ targets: this.sprite, alpha: 1, duration: 200 });
 
     // Boss: daha geniş ve sürekli görünen HP bar

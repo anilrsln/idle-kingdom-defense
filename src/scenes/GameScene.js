@@ -11,6 +11,7 @@ import Cannon from '../entities/Cannon.js';
 import FrostTower from '../entities/FrostTower.js';
 import Catapult from '../entities/Catapult.js';
 import { formatNumber } from '../utils/NumberFormatter.js';
+import AssetProvider from '../systems/AssetProvider.js';
 
 /**
  * GameScene — Ana savaş alanı.
@@ -24,13 +25,14 @@ export default class GameScene extends Phaser.Scene {
     // (menüdeyken kaydın bozulmaması için Boot'tan buraya taşındı)
     SaveManager.startAutoSave();
 
+    AssetProvider.createAnims(this);
     this.drawBackground();
     this.drawWall();
     this.drawLava();
     this.drawLanes();
 
     // Savunucular
-    this.laserMonument = new LaserMonument(this, CONFIG.DEFENDER_X, 250);
+    this.laserMonument = new LaserMonument(this, 90, 250);
     this.archers = [];
     this.cannons = [];
     this.frostTowers = [];
@@ -279,7 +281,7 @@ export default class GameScene extends Phaser.Scene {
       const corridorTop = 150;
       const corridorBottom = CONFIG.CANVAS_HEIGHT - CONFIG.LAVA_HEIGHT - 30;
       // Her tip kendi x sütununda, maxCount'a göre y spacing
-      const colX = { archer: 115, cannon: 150, frost: 115, catapult: 150 };
+      const colX = { archer: 170, cannon: 205, frost: 170, catapult: 205 };
       const maxRows = { archer: 5, cannon: 3, frost: 3, catapult: 2 };
       const rows = maxRows[type] || 5;
       const spacing = (corridorBottom - corridorTop) / (rows + 1);
