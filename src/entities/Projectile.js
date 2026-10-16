@@ -7,24 +7,48 @@ import { distance } from '../utils/MathUtils.js';
  */
 export default class Projectile {
   constructor(scene, x, y, target, type, damage, blastRadius = 0, isCrit = false, onHit = null) {
+    this.reset(scene, x, y, target, type, damage, blastRadius, isCrit, onHit);
+  }
+
+  /** Yeni veya havuzdan dönen mermiyi kullanıma hazırlar; tüm state sıfırlanır. */
+  reset(scene, x, y, target, type, damage, blastRadius = 0, isCrit = false, onHit = null) {
     this.scene = scene;
     this.target = target;
     this.type = type; // 'arrow' | 'cannonball' | 'frostbolt' | 'boulder'
     this.damage = damage;
     this.blastRadius = blastRadius;
     this.isCrit = isCrit;
-    this.onHit = onHit; // opsiyonel callback(hitEnemy) — tekli isabet sonrası efekt (frost slow gibi)
+    this.onHit = onHit;
     this.alive = true;
 
     const pConfig = CONFIG.PROJECTILES[type];
     this.speed = pConfig.speed;
 
     const texKey = `projectile-${type}`;
-    this.sprite = scene.add.image(x, y, texKey).setDepth(15);
+    if (this.sprite) {
+      // Havuzdan dönen sprite: tipe göre texture yenile, rotation/aktiflik sıfırla
+      this.sprite.setTexture(texKey);
+      this.sprite.setPosition(x, y).setDepth(15).setRotation(0)
+        .setActive(true).setVisible(true);
+    } else {
+      this.sprite = scene.add.image(x, y, texKey).setDepth(15);
+    }
 
     // Hedef pozisyonu kaydet (hedef ölse bile oraya git)
     this.targetX = target.sprite ? target.sprite.x : x + 100;
     this.targetY = target.sprite ? target.sprite.y : y;
+  }
+
+  /** Havuza dönerken pasifleştir. */
+  sleep() {
+    this.alive = false;
+    if (this.sprite) this.sprite.setActive(false).setVisible(false);
+  }
+
+  /** Sahne kapanışı: gerçek yıkım. */
+  hardDestroy() {
+    this.sprite?.destroy();
+    this.sprite = null;
   }
 
   update(delta, enemies) {
@@ -121,9 +145,11 @@ export default class Projectile {
     });
   }
 
+  /**
+   * Mermiyi "bitti" olarak işaretle. Pooling'de gerçek yıkım yapılmaz; defender
+   * update'i !alive olanı diziden çıkarıp havuza release eder (sleep çağrılır).
+   */
   destroy() {
     this.alive = false;
-    this.sprite?.destroy();
-    this.sprite = null;
   }
 }

@@ -69,7 +69,7 @@ export default class WaveManager {
     // Boss dalgası: orta şeritte tek büyük boss, girişinde duyuru
     if (this.isBossWave()) {
       const bossType = this.getBossType(GameState.wave.current);
-      const boss = new Enemy(this.scene, bossType, GameState.wave.current, this.lanes[1], { boss: true });
+      const boss = this.scene.enemyPool.acquire(this.scene, bossType, GameState.wave.current, this.lanes[1], { boss: true });
       this.enemies.push(boss);
       GameState.wave.enemiesSpawned++;
       this.scene.events.emit('boss-wave', { wave: GameState.wave.current, bossType });
@@ -77,7 +77,7 @@ export default class WaveManager {
     }
     const type = this.selectEnemyType();
     const laneY = this.lanes[Math.floor(Math.random() * this.lanes.length)];
-    const enemy = new Enemy(this.scene, type, GameState.wave.current, laneY);
+    const enemy = this.scene.enemyPool.acquire(this.scene, type, GameState.wave.current, laneY);
     this.enemies.push(enemy);
     GameState.wave.enemiesSpawned++;
   }
@@ -90,7 +90,7 @@ export default class WaveManager {
     for (let i = 0; i < n; i++) {
       const spread = i - (n - 1) / 2;
       const childY = Math.max(corridorTop, Math.min(corridorBottom, data.y + spread * 18));
-      const child = new Enemy(this.scene, 'splitter', data.wave, childY, {
+      const child = this.scene.enemyPool.acquire(this.scene, 'splitter', data.wave, childY, {
         hpFactor: data.hpFactor, rewardFactor: data.rewardFactor, scale: data.scale,
         noSplit: true, child: true, spawnX: data.x + spread * 6,
       });
@@ -156,12 +156,12 @@ export default class WaveManager {
     for (let i = this.enemies.length - 1; i >= 0; i--) {
       const e = this.enemies[i];
       e.update(delta, this.enemies);
-      if (!e.alive && !e.dying) this.enemies.splice(i, 1);
+      if (!e.alive && !e.dying) { this.enemies.splice(i, 1); this.scene.enemyPool.release(e); }
     }
   }
 
   clearAll() {
-    this.enemies.forEach(e => e.destroy());
+    this.enemies.forEach(e => this.scene.enemyPool.release(e));
     this.enemies = [];
     this.spawnTimer = 0;
     this.waveBreakTimer = 0;

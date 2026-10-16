@@ -13,6 +13,9 @@ import Catapult from '../entities/Catapult.js';
 import { formatNumber } from '../utils/NumberFormatter.js';
 import AssetProvider from '../systems/AssetProvider.js';
 import { t as i18n } from '../i18n/index.js';
+import Enemy from '../entities/Enemy.js';
+import Projectile from '../entities/Projectile.js';
+import ObjectPool from '../systems/ObjectPool.js';
 
 /**
  * GameScene — Ana savaş alanı.
@@ -25,6 +28,15 @@ export default class GameScene extends Phaser.Scene {
     // Oyun gerçekten başladı — otomatik kaydı burada başlat
     // (menüdeyken kaydın bozulmaması için Boot'tan buraya taşındı)
     SaveManager.startAutoSave();
+
+    // Nesne havuzları — Enemy ve Projectile recycling (Faz 10 object pooling).
+    // GameScene ömrü boyunca yaşar; shutdown'da drain edilir.
+    this.enemyPool = new ObjectPool((pool, ...args) => new Enemy(...args));
+    this.projectilePool = new ObjectPool((pool, ...args) => new Projectile(...args));
+    this.events.once('shutdown', () => {
+      this.enemyPool?.drain();
+      this.projectilePool?.drain();
+    });
 
     AssetProvider.createAnims(this);
     this.drawBackground();

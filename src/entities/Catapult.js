@@ -49,7 +49,7 @@ export default class Catapult extends Defender {
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const p = this.projectiles[i];
       p.update(delta, enemies);
-      if (!p.alive) this.projectiles.splice(i, 1);
+      if (!p.alive) { this.projectiles.splice(i, 1); this.scene.projectilePool.release(p); }
     }
   }
 
@@ -57,7 +57,7 @@ export default class Catapult extends Defender {
     const isBoss = target.type?.startsWith('boss_');
     const { damage, isCrit } = this.rollDamage(isBoss);
     const radius = this.getBlastRadius();
-    const proj = new Projectile(this.scene, this.x, this.y, target, 'boulder', damage, radius, isCrit);
+    const proj = this.scene.projectilePool.acquire(this.scene, this.x, this.y, target, 'boulder', damage, radius, isCrit);
     this.projectiles.push(proj);
     this.scene.game.events.emit('sfx', 'boulderFire');
 
@@ -77,7 +77,7 @@ export default class Catapult extends Defender {
 
   destroy() {
     super.destroy();
-    this.projectiles.forEach(p => p.destroy());
+    this.projectiles.forEach(p => this.scene.projectilePool?.release(p));
     this.projectiles = [];
     this.sprite?.destroy();
     this.sprite = null;

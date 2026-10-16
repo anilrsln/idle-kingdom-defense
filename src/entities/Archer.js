@@ -33,7 +33,7 @@ export default class Archer extends Defender {
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const p = this.projectiles[i];
       p.update(delta, enemies);
-      if (!p.alive) this.projectiles.splice(i, 1);
+      if (!p.alive) { this.projectiles.splice(i, 1); this.scene.projectilePool.release(p); }
     }
   }
 
@@ -41,7 +41,7 @@ export default class Archer extends Defender {
     this._shotCount++;
     const isBoss = target.type?.startsWith('boss_');
     const { damage, isCrit } = this.rollDamage(isBoss);
-    const proj = new Projectile(this.scene, this.x, this.y, target, 'arrow', damage, 0, isCrit);
+    const proj = this.scene.projectilePool.acquire(this.scene, this.x, this.y, target, 'arrow', damage, 0, isCrit);
     this.projectiles.push(proj);
     this.scene.game.events.emit('sfx', 'archerFire');
 
@@ -81,7 +81,7 @@ export default class Archer extends Defender {
 
   destroy() {
     super.destroy();
-    this.projectiles.forEach(p => p.destroy());
+    this.projectiles.forEach(p => this.scene.projectilePool?.release(p));
     this.projectiles = [];
     this.sprite?.destroy();
     this.sprite = null;

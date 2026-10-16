@@ -9,11 +9,28 @@ import AssetProvider from '../systems/AssetProvider.js';
 /** Enemy — Sağdan spawn, sola yürü, lava veya savunucu ölümü. */
 export default class Enemy {
   constructor(scene, type, waveNumber, laneY, options = {}) {
+    // Pool sözleşmesi: tüm kurulum reset()'te; constructor tek yol kullanır.
+    this.reset(scene, type, waveNumber, laneY, options);
+  }
+
+  /**
+   * Bir Enemy örneğini (yeni veya havuzdan) kullanıma hazırlar.
+   * TÜM instance state'i burada set/sıfırlanır — havuzdan dönen nesnede
+   * önceki dalganın durumu sızmasın diye her alan açıkça yazılır.
+   */
+  reset(scene, type, waveNumber, laneY, options = {}) {
     this.scene = scene;
     this.type = type;
     this.alive = true;
     this.dying = false;
     this._wave = waveNumber;
+
+    // Geçici davranış state'ini açıkça temizle (havuz güvenliği)
+    this._slowTimer = undefined;
+    this._baseSpeed = undefined;
+    this._healTimer = undefined;
+    this._flashing = false;
+    this._shieldBroken = false;
 
     const config = CONFIG.ENEMIES[type];
     this.name = config.name;
@@ -41,9 +58,17 @@ export default class Enemy {
     this._shieldBroken = false;
 
     const spawnX = options.spawnX ?? CONFIG.SPAWN_X;
-    this.sprite = scene.add.sprite(spawnX, laneY, `enemy-${type}`).setDepth(10).setAlpha(0);
-    // childScale: splitter child icin DISPLAY_SIZES uzerine oransal kucultme
     const childScale = options.scale ?? 1;
+    // Sprite: havuzdan dönen nesnede var olanı yeniden kullan, yoksa yarat.
+    if (this.sprite) {
+      scene.tweens.killTweensOf(this.sprite);       // uçan ölüm/alpha tween'lerini durdur
+      this.sprite.clearTint();
+      this.sprite.setPosition(spawnX, laneY).setDepth(10).setAlpha(0)
+        .setScale(1).setActive(true).setVisible(true).setRotation(0);
+      this.sprite.setTexture(`enemy-${type}`);
+    } else {
+      this.sprite = scene.add.sprite(spawnX, laneY, `enemy-${type}`).setDepth(10).setAlpha(0);
+    }
     AssetProvider.applySprite(this.sprite, `enemy-${type}`, childScale);
     AssetProvider.playAnim(this.sprite, `enemy-${type}`);
     scene.tweens.add({ targets: this.sprite, alpha: 1, duration: 200 });
@@ -53,7 +78,26 @@ export default class Enemy {
     this.hpBarHeight = options.boss ? 5 : 3;
     this._barYOffset = options.boss ? 34 : 14;
     this.alwaysShowBar = options.boss ?? false;
-    this.hpBar = scene.add.graphics().setDepth(11);
+    if (this.hpBar) { this.hpBar.clear(); this.hpBar.setActive(true).setVisible(true); }
+    else this.hpBar = scene.add.graphics().setDepth(11);
+  }
+
+  /** Havuza dönerken: sprite/hpBar'ı pasifleştir (yok etme). */
+  sleep() {
+    if (this.sprite) {
+      this.scene?.tweens?.killTweensOf(this.sprite);
+      this.sprite.clearTint();
+      this.sprite.setActive(false).setVisible(false);
+    }
+    if (this.hpBar) { this.hpBar.clear(); this.hpBar.setActive(false).setVisible(false); }
+    this.alive = false;
+    this.dying = false;
+  }
+
+  /** Sahne kapanışı: gerçek yıkım. */
+  hardDestroy() {
+    this.sprite?.destroy(); this.sprite = null;
+    this.hpBar?.destroy();  this.hpBar = null;
   }
 
   update(delta, enemies) {
@@ -219,7 +263,7 @@ export default class Enemy {
     this.sprite.setTint(0xffffff);
     this.scene.tweens.add({
       targets: this.sprite, scaleX: 1.5, scaleY: 1.5, alpha: 0, duration: 300, ease: 'Power2',
-      onComplete: () => { this.dying = false; this.destroy(); },
+      onComplete: () => { this.dying = false; }, // release: WaveManager havuza döndürür
     });
     this.hpBar.clear();
   }
@@ -239,7 +283,7 @@ export default class Enemy {
     this.hpBar.clear();
     this.scene.tweens.add({
       targets: this.sprite, alpha: 0, scaleX: 0.5, scaleY: 0.5, duration: 250, ease: 'Power2',
-      onComplete: () => { this.dying = false; this.destroy(); },
+      onComplete: () => { this.dying = false; }, // release: WaveManager havuza döndürür
     });
   }
 
@@ -257,7 +301,7 @@ export default class Enemy {
     const lavaY = CONFIG.CANVAS_HEIGHT - CONFIG.LAVA_HEIGHT + 10;
     this.scene.tweens.add({
       targets: this.sprite, y: lavaY, alpha: 0, scaleX: 0.5, scaleY: 0.3, duration: 400, ease: 'Power2',
-      onComplete: () => { this.dying = false; this.destroy(); },
+      onComplete: () => { this.dying = false; }, // release: WaveManager havuza döndürür
     });
     this.hpBar.clear();
   }
@@ -304,8 +348,8 @@ export default class Enemy {
     this.hpBar.fillRect(bx, by, this.hpBarWidth * ratio, this.hpBarHeight);
   }
 
+  /** Geriye dönük uyumluluk: doğrudan yıkım isteyen çağrılar için hardDestroy'a eşle. */
   destroy() {
-    this.sprite?.destroy(); this.sprite = null;
-    this.hpBar?.destroy();  this.hpBar = null;
+    this.hardDestroy();
   }
 }
