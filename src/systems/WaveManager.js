@@ -11,10 +11,12 @@ export default class WaveManager {
     this.waveBreakTimer = 0;
     this.isWaveBreak = false;
 
-    const corridorTop = 150;
-    const corridorBottom = CONFIG.CANVAS_HEIGHT - CONFIG.LAVA_HEIGHT - 30;
-    const laneSpacing = (corridorBottom - corridorTop) / 4;
-    this.lanes = [1, 2, 3].map(i => corridorTop + laneSpacing * i);
+    const corridorTop = CONFIG.CORRIDOR_TOP;
+    const corridorBottom = CONFIG.CORRIDOR_BOTTOM;
+    const laneCount = CONFIG.LANE_COUNT;
+    const laneSpacing = (corridorBottom - corridorTop) / laneCount;
+    // Tum lane'leri merkez noktalarinda tut
+    this.lanes = Array.from({ length: laneCount }, (_, i) => corridorTop + laneSpacing * (i + 0.5));
     this.calculateWaveEnemies();
   }
 
@@ -82,8 +84,8 @@ export default class WaveManager {
 
   /** Splitter ölünce küçük çocukları öldüğü yerde spawn eder. */
   spawnChildren(data) {
-    const corridorTop = 150;
-    const corridorBottom = CONFIG.CANVAS_HEIGHT - CONFIG.LAVA_HEIGHT - 30;
+    const corridorTop = CONFIG.CORRIDOR_TOP;
+    const corridorBottom = CONFIG.CORRIDOR_BOTTOM;
     const n = data.count || 2;
     for (let i = 0; i < n; i++) {
       const spread = i - (n - 1) / 2;

@@ -32,7 +32,7 @@ export default class GameScene extends Phaser.Scene {
     this.drawLanes();
 
     // Savunucular
-    this.laserMonument = new LaserMonument(this, 120, 250);
+    this.laserMonument = new LaserMonument(this, 40, 260);
     this.archers = [];
     this.cannons = [];
     this.frostTowers = [];
@@ -151,7 +151,7 @@ export default class GameScene extends Phaser.Scene {
     sky.fillRect(0, 0, W, H);
 
     // Zemin bandı (koridor) — gökyüzüyle aynı aileden, bir tık koyu lacivert
-    const groundTop = H - CONFIG.LAVA_HEIGHT - 150;
+    const groundTop = CONFIG.CORRIDOR_BOTTOM - 150;  // zemin bandi corridor altini kaplar
     const groundH = 150;
     this.add.rectangle(W / 2, groundTop + groundH / 2, W, groundH, CONFIG.COLORS.GROUND).setDepth(0);
 
@@ -162,9 +162,9 @@ export default class GameScene extends Phaser.Scene {
   drawWall() {
     const wallH = CONFIG.CANVAS_HEIGHT - CONFIG.LAVA_HEIGHT - 30;
     // Ana duvar
-    this.add.rectangle(CONFIG.WALL_X, wallH / 2 + 30, 30, wallH, CONFIG.COLORS.WALL).setDepth(2);
+    this.add.rectangle(CONFIG.WALL_X, wallH / 2 + 30, 36, wallH, CONFIG.COLORS.WALL).setDepth(2);
     // Üst kısım
-    this.add.rectangle(CONFIG.WALL_X, 30, 34, 8, CONFIG.COLORS.WALL_TOP).setDepth(3);
+    this.add.rectangle(CONFIG.WALL_X, 30, 40, 8, CONFIG.COLORS.WALL_TOP).setDepth(3);
 
     // Tuğla deseni
     const brickG = this.add.graphics().setDepth(3);
@@ -205,12 +205,13 @@ export default class GameScene extends Phaser.Scene {
 
   drawLanes() {
     const g = this.add.graphics().setDepth(1);
-    const corridorTop = 150;
-    const corridorBottom = CONFIG.CANVAS_HEIGHT - CONFIG.LAVA_HEIGHT - 30;
-    const laneSpacing = (corridorBottom - corridorTop) / 4;
+    const corridorTop = CONFIG.CORRIDOR_TOP;
+    const corridorBottom = CONFIG.CORRIDOR_BOTTOM;
+    const laneCount = CONFIG.LANE_COUNT;
+    const laneSpacing = (corridorBottom - corridorTop) / laneCount;
 
-    g.lineStyle(1, CONFIG.COLORS.GROUND_LIGHT, 0.3);
-    for (let i = 0; i <= 4; i++) {
+    g.lineStyle(1, CONFIG.COLORS.GROUND_LIGHT, 0.25);
+    for (let i = 0; i <= laneCount; i++) {
       const y = corridorTop + laneSpacing * i;
       g.lineBetween(CONFIG.WALL_X + 20, y, CONFIG.CANVAS_WIDTH, y);
     }
@@ -278,15 +279,19 @@ export default class GameScene extends Phaser.Scene {
 
     while (list.length < targetCount) {
       const idx = list.length;
-      const corridorTop = 150;
-      const corridorBottom = CONFIG.CANVAS_HEIGHT - CONFIG.LAVA_HEIGHT - 30;
-      // Her tip kendi x sutununda; archer duvarin ustunde (solda), digerleri sagda
-      const colX = { archer: CONFIG.WALL_X, cannon: 160, frost: 210, catapult: 260 };
-      const maxRows = { archer: 5, cannon: 3, frost: 3, catapult: 2 };
-      const rows = maxRows[type] || 5;
-      const spacing = (corridorBottom - corridorTop) / (rows + 1);
-      const y = corridorTop + spacing * (idx + 1);
-      const x = colX[type] || (CONFIG.DEFENDER_X + 15);
+      const corridorTop = CONFIG.CORRIDOR_TOP;
+      const corridorBottom = CONFIG.CORRIDOR_BOTTOM;
+      const laneCount = CONFIG.LANE_COUNT;
+      // Kolon x'leri: archer duvarda, diger tipler surun arkasinda
+      const colX = { archer: CONFIG.WALL_X, cannon: 160, frost: 215, catapult: 290 };
+      const x = colX[type] ?? (CONFIG.DEFENDER_X + 15);
+      // Ortadan koseye acilan lane sirasi: 0→orta, 1→orta-1, 2→orta+1, ...
+      const laneSpacing = (corridorBottom - corridorTop) / laneCount;
+      const midLane = Math.floor(laneCount / 2); // orta lane indexi
+      const offsets = [0, -1, 1, -2, 2, -3, 3];
+      const laneIdx = midLane + (offsets[idx] ?? idx);
+      const clampedLane = Phaser.Math.Clamp(laneIdx, 0, laneCount - 1);
+      const y = corridorTop + laneSpacing * (clampedLane + 0.5);
       list.push(new DefenderClass(this, x, y, idx));
     }
 

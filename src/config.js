@@ -7,7 +7,10 @@ export const CONFIG = {
   CANVAS_HEIGHT: 500,
 
   // Sahne konumları
-  WALL_X: 60,
+  WALL_X: 80,        // sur x'i (kirmizi cizgiler arasina tasindi)
+  CORRIDOR_TOP: 80,  // oyun koridoru ust siniri (UI barin hemen alti)
+  CORRIDOR_BOTTOM: 440, // lava ustunde biter
+  LANE_COUNT: 5,     // toplam lane sayisi (tam y eksenini kaplar)
   LAVA_X: 50,
   SPAWN_X: 780,
   LANE_Y: 250,
