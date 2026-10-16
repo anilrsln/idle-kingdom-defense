@@ -71,8 +71,8 @@ export default class UIScene extends Phaser.Scene {
     this.foodFlashTimer = 0;
 
     // ═══════ ALT PANEL (Upgrade) ═══════
-    this.panelHeight = 120;
-    this.panelY = CONFIG.CANVAS_HEIGHT - this.panelHeight;
+    this.panelHeight = CONFIG.CANVAS_HEIGHT - CONFIG.CORRIDOR_BOTTOM - 5; // tam oyun alani altinda
+    this.panelY = CONFIG.CORRIDOR_BOTTOM + 5;
 
     // Panel arka planı
     this.panelBg = this.add.rectangle(
