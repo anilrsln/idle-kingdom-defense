@@ -70,7 +70,10 @@ export default class Enemy {
     this.sprite.x -= this.speed * delta;
     this.updateHPBar();
     if (this.healConfig && enemies) this._updateHeal(delta, enemies);
-    if (this.sprite.x <= CONFIG.LAVA_X + 20) this.dieToLava();
+    // Sur'a değince ödülsüz öl (savunucular ezip geçti sayılmaz)
+    if (this.sprite.x <= CONFIG.WALL_X - 14) { this.dieToWall(); return; }
+    // Lava: sur geçilip lavaya ulaşılırsa (normalde olmaz ama fallback)
+    if (this.sprite.x <= CONFIG.LAVA_X + 10) this.dieToLava();
   }
 
   /** Healer: periyodik olarak menzildeki (kendisi hariç) düşmanların HP'sini yeniler.
@@ -219,6 +222,25 @@ export default class Enemy {
       onComplete: () => { this.dying = false; this.destroy(); },
     });
     this.hpBar.clear();
+  }
+
+  /** Sura çarptı — ödül yok, sessizce yok ol. */
+  dieToWall() {
+    if (this.dying) return;
+    this.dying = true; this.alive = false;
+    // wave kotasına sayılır (spawn edildi), ama ödül verilmez
+    if (!this.isChild) GameState.wave.enemiesKilled++;
+    GameState.stats.totalEnemiesKilled++;
+    this.scene.events.emit('enemy-killed', {
+      type: this.type, exp: 0, food: 0,
+      x: this.sprite.x, y: this.sprite.y, killedBy: 'wall',
+    });
+    this.scene.game.events.emit('sfx', 'deathLava');
+    this.hpBar.clear();
+    this.scene.tweens.add({
+      targets: this.sprite, alpha: 0, scaleX: 0.5, scaleY: 0.5, duration: 250, ease: 'Power2',
+      onComplete: () => { this.dying = false; this.destroy(); },
+    });
   }
 
   dieToLava() {

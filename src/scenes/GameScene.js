@@ -181,25 +181,28 @@ export default class GameScene extends Phaser.Scene {
   }
 
   drawLava() {
-    const lavaY = CONFIG.CANVAS_HEIGHT - CONFIG.LAVA_HEIGHT;
-    // Ana lava
-    this.lavaRect = this.add.rectangle(
-      CONFIG.LAVA_X / 2, lavaY + CONFIG.LAVA_HEIGHT / 2,
-      CONFIG.LAVA_X, CONFIG.LAVA_HEIGHT, CONFIG.COLORS.LAVA
-    ).setDepth(1).setAlpha(0.8);
+    // Lava: sol kenarda, corridor boyunca dikey bir duvar (düşman buraya ulaşırsa yanar)
+    const lavaW = CONFIG.LAVA_X;                           // genişlik = 50px
+    const lavaH = CONFIG.CORRIDOR_BOTTOM - CONFIG.CORRIDOR_TOP;
+    const lavaCX = lavaW / 2;
+    const lavaCY = CONFIG.CORRIDOR_TOP + lavaH / 2;
 
-    // Lava glow animasyonu
+    this.lavaRect = this.add.rectangle(
+      lavaCX, lavaCY, lavaW, lavaH, CONFIG.COLORS.LAVA
+    ).setDepth(1).setAlpha(0.7);
+
+    // Lava pulse
     this.tweens.add({
-      targets: this.lavaRect, alpha: 0.6,
+      targets: this.lavaRect, alpha: 0.45,
       duration: 1500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
     });
 
-    // Glow efekti üstte
+    // Glow efekti sağ kenarda (düşman tarafına bakan)
     const glowRect = this.add.rectangle(
-      CONFIG.LAVA_X / 2, lavaY, CONFIG.LAVA_X + 10, 6, CONFIG.COLORS.LAVA_GLOW
-    ).setDepth(2).setAlpha(0.3);
+      lavaW, lavaCY, 6, lavaH, CONFIG.COLORS.LAVA_GLOW
+    ).setDepth(2).setAlpha(0.4);
     this.tweens.add({
-      targets: glowRect, alpha: 0.1,
+      targets: glowRect, alpha: 0.15,
       duration: 1000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
     });
   }
@@ -286,12 +289,14 @@ export default class GameScene extends Phaser.Scene {
       // Kolon x'leri: archer duvarda, diger tipler surun arkasinda
       // Archer: sur ustunde | Cannon/Frost/Catapult: surun solunda (kale arkasi)
       const colX = { archer: CONFIG.WALL_X, cannon: 118, frost: 68, catapult: 28 };
+      // Catapult için lane offseti: 2 unit olunca orta 2 lane yerine biraz aşağı kaydır
+      const laneOffset = (type === 'catapult') ? 1 : 0;
       const x = colX[type] ?? (CONFIG.DEFENDER_X + 15);
       // Ortadan koseye acilan lane sirasi: 0→orta, 1→orta-1, 2→orta+1, ...
       const laneSpacing = (corridorBottom - corridorTop) / laneCount;
       const midLane = Math.floor(laneCount / 2); // orta lane indexi
       const offsets = [0, -1, 1, -2, 2, -3, 3];
-      const laneIdx = midLane + (offsets[idx] ?? idx);
+      const laneIdx = midLane + (offsets[idx] ?? idx) + laneOffset;
       const clampedLane = Phaser.Math.Clamp(laneIdx, 0, laneCount - 1);
       const y = corridorTop + laneSpacing * (clampedLane + 0.5);
       list.push(new DefenderClass(this, x, y, idx));
