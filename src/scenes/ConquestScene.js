@@ -5,179 +5,132 @@ import { formatNumber } from '../utils/NumberFormatter.js';
 
 /**
  * ConquestScene — Skill tree / Fetih Haritası.
- * Modal olarak açılır/kapanır. Node tabanlı ağaç yapısı.
- * Scroll destekli: tüm node'lar görünür.
+ * Scroll destekli: tüm 18 node görünür.
  */
 export default class ConquestScene extends Phaser.Scene {
   constructor() { super({ key: 'ConquestScene' }); }
 
   create() {
-    // Scroll state
+    const W = 800, H = 500;
+    const HEADER_H = 50;
+    const AREA_H = H - HEADER_H;   // 450px scroll alanı
+    this.CONTENT_H = 760;          // en alttaki node y=680 + 80 margin
     this.scrollY = 0;
-    this.SCROLL_AREA_TOP = 50;     // başlığın altı
-    this.SCROLL_AREA_H = 440;      // kaydırılabilir alan yüksekliği
-    this.CONTENT_H = 750;          // tüm içerik yüksekliği (en alttaki node ~680 + margin)
 
-    // Koyu arka plan
-    this.bg = this.add.rectangle(400, 250, 800, 500, 0x0a0a1a, 0.95).setDepth(200).setInteractive();
+    // ── Arka plan (tüm sahne, scroll dışı) ──
+    this.add.rectangle(W / 2, H / 2, W, H, 0x0a0a1a, 0.97).setDepth(200).setInteractive();
 
-    // Başlık (sabit)
-    this.add.text(400, 20, '⚔ CONQUEST MAP ⚔', {
-      fontSize: '22px', fontFamily: 'monospace', color: '#ffd700',
+    // ── Başlık (sabit) ──
+    this.add.text(W / 2, 25, '⚔ CONQUEST MAP ⚔', {
+      fontSize: '20px', fontFamily: 'monospace', color: '#ffd700',
       stroke: '#000', strokeThickness: 2,
-    }).setOrigin(0.5).setDepth(205);
+    }).setOrigin(0.5).setDepth(210);
 
-    // Kaynak göstergesi (sabit)
-    this.expLabel = this.add.text(20, 20, '', this.textStyle(12, '#ffd700')).setDepth(205);
-    this.foodLabel = this.add.text(20, 38, '', this.textStyle(12, '#66ff66')).setDepth(205);
+    this.expLabel  = this.add.text(14, 12, '', this.ts(11, '#ffd700')).setDepth(210);
+    this.foodLabel = this.add.text(14, 28, '', this.ts(11, '#66ff66')).setDepth(210);
 
-    // Kapat butonu (sabit)
-    const closeBtn = this.add.rectangle(760, 25, 60, 25, 0xe94560).setDepth(206).setInteractive({ useHandCursor: true });
-    this.add.text(760, 25, 'CLOSE', this.textStyle(11, '#ffffff')).setOrigin(0.5).setDepth(207);
-    closeBtn.on('pointerdown', () => this.closeMap());
-    closeBtn.on('pointerover', () => closeBtn.setFillStyle(0xff6680));
-    closeBtn.on('pointerout', () => closeBtn.setFillStyle(0xe94560));
+    // Kapat butonu
+    const cb = this.add.rectangle(770, 25, 56, 26, 0xe94560).setDepth(210).setInteractive({ useHandCursor: true });
+    this.add.text(770, 25, 'CLOSE', this.ts(11, '#fff')).setOrigin(0.5).setDepth(211);
+    cb.on('pointerdown', () => this.closeMap());
+    cb.on('pointerover',  () => cb.setFillStyle(0xff6680));
+    cb.on('pointerout',   () => cb.setFillStyle(0xe94560));
 
-    // Scroll göstergesi
-    this.scrollHint = this.add.text(400, 488, '▼ scroll ▼', this.textStyle(10, '#666688')).setOrigin(0.5).setDepth(205);
+    // Scroll ipucu
+    this.scrollHint = this.add.text(W / 2, H - 8, '▼ kaydır ▼', this.ts(9, '#556')).setOrigin(0.5).setDepth(210);
 
-    // Kaydırılabilir container
-    this.scrollContainer = this.add.container(0, this.SCROLL_AREA_TOP).setDepth(201);
+    // ── Scroll container (tüm node içeriği buraya) ──
+    // Başlangıç y = HEADER_H (başlığın hemen altı)
+    this.sc = this.add.container(0, HEADER_H).setDepth(201);
 
-    // Mask — sadece scroll area içini göster
-    const maskShape = this.make.graphics({ x: 0, y: 0, add: false });
-    maskShape.fillRect(0, this.SCROLL_AREA_TOP, 800, this.SCROLL_AREA_H);
-    this.scrollContainer.setMask(maskShape.createGeometryMask());
+    // Mask: sadece HEADER_H ile H arasını göster
+    const mg = this.make.graphics({ add: false });
+    mg.fillRect(0, HEADER_H, W, AREA_H);
+    this.sc.setMask(mg.createGeometryMask());
 
-    // Node'ları çiz
+    // ── İçerik ──
     this.nodeElements = [];
-    this.connectionGraphics = this.add.graphics().setDepth(201);
-    this.scrollContainer.add(this.connectionGraphics);
     this.drawConnections();
     this.createNodes();
 
-    // Mouse wheel scroll
-    this.input.on('wheel', (_ptr, _objs, _dx, dy) => {
-      this.doScroll(dy * 0.5);
+    // ── Scroll input ──
+    this.input.on('wheel', (_p, _o, _dx, dy) => this.scroll(dy * 0.6));
+
+    // Drag (arka plan üzerinde)
+    this.input.on('pointermove', (p) => {
+      if (p.isDown) this.scroll(-p.velocity.y * 0.12);
     });
-
-    // Drag scroll
-    this.bg.on('pointermove', (ptr) => {
-      if (ptr.isDown) {
-        this.doScroll(-ptr.velocity.y * 0.1);
-      }
-    });
-
-    // Tooltip
-    this.tooltip = null;
   }
 
-  doScroll(delta) {
-    const maxScroll = Math.max(0, this.CONTENT_H - this.SCROLL_AREA_H);
-    this.scrollY = Phaser.Math.Clamp(this.scrollY + delta, 0, maxScroll);
-    this.scrollContainer.y = this.SCROLL_AREA_TOP - this.scrollY;
-
-    // Scroll ipucunu güncelle
-    if (this.scrollHint) {
-      this.scrollHint.setVisible(this.scrollY < maxScroll - 5);
-    }
+  scroll(delta) {
+    const maxS = Math.max(0, this.CONTENT_H - (500 - 50));
+    this.scrollY = Phaser.Math.Clamp(this.scrollY + delta, 0, maxS);
+    this.sc.y = 50 - this.scrollY;
+    if (this.scrollHint) this.scrollHint.setVisible(this.scrollY < maxS - 4);
   }
 
-  textStyle(size, color) {
-    return { fontSize: `${size}px`, fontFamily: 'monospace', color, stroke: '#000', strokeThickness: 1 };
+  ts(size, color) {
+    return { fontSize: `${size}px`, fontFamily: 'monospace', color, stroke: '#000000', strokeThickness: 1 };
   }
 
-  // ═══════ BAĞLANTI ÇİZGİLERİ ═══════
+  // ── Bağlantı çizgileri (container'ın en altında) ──
   drawConnections() {
-    this.connectionGraphics.clear();
-    const nodes = CONFIG.CONQUEST_NODES;
+    if (this.connGfx) this.connGfx.destroy();
+    this.connGfx = this.add.graphics().setDepth(0); // container-local depth 0 = en altta
+    this.sc.addAt(this.connGfx, 0);
 
-    for (const node of Object.values(nodes)) {
+    for (const node of Object.values(CONFIG.CONQUEST_NODES)) {
       for (const reqId of node.requires) {
-        const reqNode = nodes[reqId];
-        if (!reqNode) continue;
-
-        const unlocked = ConquestManager.isUnlocked(node.id) && ConquestManager.isUnlocked(reqId);
-        const color = unlocked ? 0x00ff00 : 0x444466;
-        const alpha = unlocked ? 0.8 : 0.4;
-
-        this.connectionGraphics.lineStyle(2, color, alpha);
-        this.connectionGraphics.beginPath();
-        this.connectionGraphics.moveTo(reqNode.x, reqNode.y);
-        this.connectionGraphics.lineTo(node.x, node.y);
-        this.connectionGraphics.strokePath();
+        const req = CONFIG.CONQUEST_NODES[reqId];
+        if (!req) continue;
+        const bothUnlocked = ConquestManager.isUnlocked(node.id) && ConquestManager.isUnlocked(reqId);
+        this.connGfx.lineStyle(2, bothUnlocked ? 0x00cc44 : 0x334466, bothUnlocked ? 0.9 : 0.5);
+        this.connGfx.lineBetween(req.x, req.y, node.x, node.y);
       }
     }
   }
 
-  // ═══════ NODE'LAR ═══════
+  // ── Node'lar (container'a doğrudan ekle) ──
   createNodes() {
-    // Eski elementleri temizle
-    this.nodeElements.forEach(el => {
-      el.bg.destroy();
-      el.label.destroy();
-      if (el.icon) el.icon.destroy();
-    });
+    this.nodeElements.forEach(el => { el.forEach(o => o.destroy()); });
     this.nodeElements = [];
 
-    const nodesInfo = ConquestManager.getAllNodesInfo();
+    for (const node of ConquestManager.getAllNodesInfo()) {
+      const { x, y, name, unlocked, available, canPurchase, cost } = node;
 
-    for (const node of nodesInfo) {
-      const { x, y, name, unlocked, available, canPurchase } = node;
+      let bgCol, txtCol;
+      if (unlocked)         { bgCol = 0x1a5c1a; txtCol = '#00ff00'; }
+      else if (canPurchase) { bgCol = 0x0d2e58; txtCol = '#ffd700'; }
+      else if (available)   { bgCol = 0x242438; txtCol = '#9999bb'; }
+      else                  { bgCol = 0x141426; txtCol = '#444455'; }
 
-      // Renk belirleme
-      let bgColor, textColor;
-      if (unlocked) {
-        bgColor = 0x1a6a1a; textColor = '#00ff00';
-      } else if (canPurchase) {
-        bgColor = 0x0f3460; textColor = '#ffd700';
-      } else if (available) {
-        bgColor = 0x2a2a4a; textColor = '#aaaaaa';
-      } else {
-        bgColor = 0x1a1a2a; textColor = '#555555';
-      }
+      const NW = 138, NH = 42;
 
-      const nodeW = 140, nodeH = 44;
-      const bg = this.add.rectangle(x, y, nodeW, nodeH, bgColor).setDepth(202).setInteractive({ useHandCursor: true });
+      // Container'ın içinde oluştur: this.add ile DEĞİL, doğrudan Phaser objeleri yarat
+      const bg = this.add.rectangle(x, y, NW, NH, bgCol).setDepth(2);
+      if (unlocked)         bg.setStrokeStyle(2, 0x00ff00);
+      else if (canPurchase) bg.setStrokeStyle(2, 0xffd700);
+      else if (available)   bg.setStrokeStyle(1, 0x445566);
 
-      // Border
-      if (unlocked) {
-        bg.setStrokeStyle(2, 0x00ff00);
-      } else if (canPurchase) {
-        bg.setStrokeStyle(2, 0xffd700);
-      } else if (available) {
-        bg.setStrokeStyle(1, 0x555577);
-      }
+      const shortName = name.length > 17 ? name.substring(0, 16) + '…' : name;
+      const lbl = this.add.text(x, y - 6, shortName, this.ts(10, txtCol)).setOrigin(0.5).setDepth(3);
 
-      // İsim (kısa)
-      const shortName = name.length > 16 ? name.substring(0, 15) + '…' : name;
-      const label = this.add.text(x, y - 5, shortName, this.textStyle(10, textColor)).setOrigin(0.5).setDepth(203);
-
-      // Maliyet veya ✓
-      let costStr = '';
-      if (unlocked) {
-        costStr = '✓ Unlocked';
-      } else {
+      let costStr = unlocked ? '✓ Unlocked' : '';
+      if (!unlocked) {
         const parts = [];
-        if (node.cost.exp) parts.push(`${formatNumber(node.cost.exp)} EXP`);
-        if (node.cost.food) parts.push(`${formatNumber(node.cost.food)} Food`);
+        if (cost.exp)  parts.push(`${formatNumber(cost.exp)} EXP`);
+        if (cost.food) parts.push(`${formatNumber(cost.food)} Food`);
         costStr = parts.join(' + ');
       }
-      const icon = this.add.text(x, y + 10, costStr, this.textStyle(8, unlocked ? '#88ff88' : '#888888')).setOrigin(0.5).setDepth(203);
+      const sub = this.add.text(x, y + 9, costStr, this.ts(8, unlocked ? '#66ff88' : '#666688')).setOrigin(0.5).setDepth(3);
 
-      // Tıklama — scroll offset'i hesaba kat
-      bg.on('pointerdown', (ptr) => {
-        // pointer world y — container offset farkı hesapla
-        this.onNodeClick(node);
-      });
-      bg.on('pointerover', () => this.showTooltip(node, x, y - nodeH / 2 - 10));
-      bg.on('pointerout', () => this.hideTooltip());
+      bg.setInteractive({ useHandCursor: true });
+      bg.on('pointerdown',  () => this.onNodeClick(node));
+      bg.on('pointerover',  () => this.showTip(node, x, y - NH / 2 - 18));
+      bg.on('pointerout',   () => this.hideTip());
 
-      this.scrollContainer.add(bg);
-      this.scrollContainer.add(label);
-      this.scrollContainer.add(icon);
-
-      this.nodeElements.push({ bg, label, icon });
+      this.sc.add([bg, lbl, sub]);
+      this.nodeElements.push([bg, lbl, sub]);
     }
   }
 
@@ -186,37 +139,23 @@ export default class ConquestScene extends Phaser.Scene {
       this.game.events.emit('sfx', 'hire');
       this.drawConnections();
       this.createNodes();
-      this.hideTooltip();
-
-      // Flash efekti
-      const flash = this.add.rectangle(node.x, node.y, 160, 50, 0xffffff, 0.5).setDepth(210);
-      this.scrollContainer.add(flash);
-      this.tweens.add({
-        targets: flash, alpha: 0, duration: 300,
-        onComplete: () => flash.destroy(),
-      });
+      this.hideTip();
     } else {
       this.game.events.emit('sfx', 'uiDenied');
     }
   }
 
-  showTooltip(node, x, y) {
-    this.hideTooltip();
+  showTip(node, x, y) {
+    this.hideTip();
     const desc = node.description || '';
-    // tooltip'i container içinde göster (scroll offset ile birlikte hareket eder)
-    const tipBg = this.add.rectangle(x, y - 10, 180, 30, 0x000000, 0.9).setDepth(210);
-    const tipText = this.add.text(x, y - 10, desc, this.textStyle(10, '#ffffff')).setOrigin(0.5).setDepth(211);
-    this.scrollContainer.add(tipBg);
-    this.scrollContainer.add(tipText);
-    this.tooltip = { bg: tipBg, text: tipText };
+    const tb = this.add.rectangle(x, y, 200, 28, 0x000000, 0.92).setDepth(10);
+    const tt = this.add.text(x, y, desc, this.ts(9, '#eeeeff')).setOrigin(0.5).setDepth(11);
+    this.sc.add([tb, tt]);
+    this._tip = [tb, tt];
   }
 
-  hideTooltip() {
-    if (this.tooltip) {
-      this.tooltip.bg.destroy();
-      this.tooltip.text.destroy();
-      this.tooltip = null;
-    }
+  hideTip() {
+    if (this._tip) { this._tip.forEach(o => o.destroy()); this._tip = null; }
   }
 
   closeMap() {

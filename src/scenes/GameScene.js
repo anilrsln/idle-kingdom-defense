@@ -281,7 +281,7 @@ export default class GameScene extends Phaser.Scene {
       const corridorTop = 150;
       const corridorBottom = CONFIG.CANVAS_HEIGHT - CONFIG.LAVA_HEIGHT - 30;
       // Her tip kendi x sutununda; archer duvarin ustunde (solda), digerleri sagda
-      const colX = { archer: CONFIG.WALL_X, cannon: 175, frost: 175, catapult: 205 };
+      const colX = { archer: CONFIG.WALL_X, cannon: 160, frost: 210, catapult: 260 };
       const maxRows = { archer: 5, cannon: 3, frost: 3, catapult: 2 };
       const rows = maxRows[type] || 5;
       const spacing = (corridorBottom - corridorTop) / (rows + 1);
