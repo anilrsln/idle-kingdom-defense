@@ -22,12 +22,12 @@ const DISPLAY_SIZES = {
   'enemy-boss_armored':   { w: 96, h: 96 },
   // defenders
   'defender-laser':       { w: 24, h: 48 },
-  'defender-archer':      { w: 38, h: 38 },
+  'defender-archer':      { w: 76, h: 76 },   // 2x buyuk
   'defender-cannon':      { w: 32, h: 42 },
   'defender-frost':       { w: 28, h: 48 },
   'defender-catapult':    { w: 36, h: 30 },
   // projectiles
-  'projectile-arrow':     { w: 14, h: 14 },
+  'projectile-arrow':     { w: 5, h: 5 },
 };
 
 /**
@@ -36,15 +36,15 @@ const DISPLAY_SIZES = {
  */
 const ANIM_DEFS = {
   'enemy-skeleton':       { frameCount: 6, frameRate: 8 },
-  'enemy-armored':        { frameCount: 6, frameRate: 7 },
+  'enemy-armored':        { frameCount: 6, frameRate: 7,  flipX: true },
   'enemy-fast':           { frameCount: 6, frameRate: 12 },
   'enemy-foodCarrier':    { frameCount: 6, frameRate: 8 },
-  'enemy-elite':          { frameCount: 6, frameRate: 7 },
-  'enemy-shield':         { frameCount: 6, frameRate: 7 },
+  'enemy-elite':          { frameCount: 6, frameRate: 7,  flipX: true },
+  'enemy-shield':         { frameCount: 6, frameRate: 7,  flipX: true },
   'enemy-splitter':       { frameCount: 6, frameRate: 9 },
   'enemy-healer':         { frameCount: 6, frameRate: 8 },
-  'enemy-boss_tank':      { frameCount: 6, frameRate: 6 },
-  'enemy-boss_berserker': { frameCount: 6, frameRate: 7 },
+  'enemy-boss_tank':      { frameCount: 6, frameRate: 6,  flipX: true },
+  'enemy-boss_berserker': { frameCount: 6, frameRate: 7,  flipX: true },
   'enemy-boss_shaman':    { frameCount: 6, frameRate: 7 },
   'enemy-boss_splitter':  { frameCount: 6, frameRate: 7 },
   'enemy-boss_armored':   { frameCount: 6, frameRate: 6 },
@@ -100,8 +100,10 @@ const AssetProvider = {
   /** Animasyonu oynat — anim tanımı yoksa sessizce geçer. */
   playAnim(sprite, key) {
     if (!sprite || typeof sprite.play !== 'function') return;
-    if (ANIM_DEFS[key]) {
+    const def = ANIM_DEFS[key];
+    if (def) {
       sprite.play(key, true);
+      if (def.flipX) sprite.setFlipX(true);
     }
   },
 
