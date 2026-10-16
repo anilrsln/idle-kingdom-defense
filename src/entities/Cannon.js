@@ -12,7 +12,7 @@ export default class Cannon extends Defender {
   constructor(scene, x, y, index) {
     super(scene, 'cannon', x, y);
     this.index = index;
-    this.sprite = scene.add.sprite(x, y, 'defender-cannon').setDepth(5);
+    this.sprite = scene.add.image(x, y, 'defender-cannon').setDepth(5);
     AssetProvider.applySprite(this.sprite, 'defender-cannon');
     this.projectiles = [];
   }

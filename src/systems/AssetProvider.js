@@ -16,26 +16,26 @@ import { CONFIG } from '../config.js';
 
 /** Oyun mantığında kullanılacak ekran boyutları (px) */
 const DISPLAY_SIZES = {
-  // enemies
-  'enemy-skeleton':       { w: 18, h: 18 },
-  'enemy-armored':        { w: 22, h: 22 },
-  'enemy-fast':           { w: 16, h: 16 },
-  'enemy-foodCarrier':    { w: 20, h: 20 },
-  'enemy-elite':          { w: 24, h: 24 },
-  'enemy-shield':         { w: 20, h: 20 },
-  'enemy-splitter':       { w: 22, h: 22 },
-  'enemy-healer':         { w: 20, h: 20 },
-  'enemy-boss_tank':      { w: 48, h: 48 },
-  'enemy-boss_berserker': { w: 56, h: 56 },
-  'enemy-boss_shaman':    { w: 52, h: 52 },
-  'enemy-boss_splitter':  { w: 60, h: 60 },
-  'enemy-boss_armored':   { w: 56, h: 56 },
-  // defenders
-  'defender-laser':       { w: 24, h: 32 },
-  'defender-archer':      { w: 22, h: 28 },
-  'defender-cannon':      { w: 28, h: 28 },
-  'defender-frost':       { w: 22, h: 28 },
-  'defender-catapult':    { w: 26, h: 22 },
+  // enemies — frame 192x192'den oyun boyutuna scale
+  'enemy-skeleton':       { w: 36, h: 36 },
+  'enemy-armored':        { w: 42, h: 42 },
+  'enemy-fast':           { w: 32, h: 32 },
+  'enemy-foodCarrier':    { w: 38, h: 38 },
+  'enemy-elite':          { w: 48, h: 48 },
+  'enemy-shield':         { w: 42, h: 42 },
+  'enemy-splitter':       { w: 38, h: 38 },
+  'enemy-healer':         { w: 36, h: 36 },
+  'enemy-boss_tank':      { w: 80, h: 80 },
+  'enemy-boss_berserker': { w: 90, h: 90 },
+  'enemy-boss_shaman':    { w: 84, h: 84 },
+  'enemy-boss_splitter':  { w: 96, h: 96 },
+  'enemy-boss_armored':   { w: 88, h: 88 },
+  // defenders — bina asset'leri statik (128x256 veya 192x256)
+  'defender-laser':       { w: 40, h: 80 },   // Tower
+  'defender-archer':      { w: 56, h: 75 },   // Archery
+  'defender-cannon':      { w: 56, h: 75 },   // Barracks
+  'defender-frost':       { w: 56, h: 75 },   // Monastery
+  'defender-catapult':    { w: 48, h: 64 },   // Castle (küçük)
 };
 
 const AssetProvider = {

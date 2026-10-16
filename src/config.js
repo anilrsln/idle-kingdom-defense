@@ -162,12 +162,12 @@ export const CONFIG = {
     'enemy-boss_shaman':    { sprite: 'assets/units/black-monk-idle.png',     frames: { frameWidth: 192, frameHeight: 192 } },
     'enemy-boss_splitter':  { sprite: 'assets/units/purple-monk-idle.png',    frames: { frameWidth: 192, frameHeight: 192 } },
     'enemy-boss_armored':   { sprite: 'assets/units/black-pawn-idle.png',     frames: { frameWidth: 192, frameHeight: 192 } },
-    // Defenders — Blue Units
-    'defender-laser':    { sprite: 'assets/units/blue-warrior-idle.png',   frames: { frameWidth: 192, frameHeight: 192 } },
-    'defender-archer':   { sprite: 'assets/units/blue-archer-idle.png',    frames: { frameWidth: 192, frameHeight: 192 } },
-    'defender-cannon':   { sprite: 'assets/units/blue-lancer-idle.png',    frames: { frameWidth: 320, frameHeight: 320 } },
-    'defender-frost':    { sprite: 'assets/units/blue-monk-idle.png',      frames: { frameWidth: 192, frameHeight: 192 } },
-    'defender-catapult': { sprite: 'assets/units/blue-pawn-idle.png',      frames: { frameWidth: 192, frameHeight: 192 } },
+    // Defenders — Bina asset'leri (statik PNG, frames yok)
+    'defender-laser':    { sprite: 'assets/buildings/blue-tower.png' },
+    'defender-archer':   { sprite: 'assets/buildings/blue-archery.png' },
+    'defender-cannon':   { sprite: 'assets/buildings/blue-barracks.png' },
+    'defender-frost':    { sprite: 'assets/buildings/blue-monastery.png' },
+    'defender-catapult': { sprite: 'assets/buildings/blue-castle.png' },
     // Projectiles — keep geometric for now (tiny, fast-moving objects)
     'projectile-arrow':      { shape: 'circle', size: 3, color: 0x7cfc00 },
     'projectile-cannonball': { shape: 'circle', size: 5, color: 0xff8c00 },
