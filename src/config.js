@@ -365,7 +365,7 @@ export const CONFIG = {
       description: 'Lava\'ya düşen düşmanlardan EXP verimi %35\'ten %80\'e yükselir',
       cost: { exp: 600 },
       effect: { type: 'lavaExpRate', value: 0.8 },
-      requires: ['expMultiplier'], x: 100, y: 320,
+      requires: ['expMultiplier'], x: 280, y: 440,
     },
     kingsDecree1: {
       id: 'kingsDecree1', name: "King's Decree I",
