@@ -99,8 +99,7 @@ export default class LaserMonument extends Defender {
 
   updateGlow() {
     if (!this.sprite) return;
-    const pulse = 0.8 + Math.sin(this.glowPhase * 2) * 0.2;
-    this.sprite.setAlpha(pulse);
+    this.sprite.setAlpha(1); // sabit — yanıp sönme yok
   }
 
   destroy() {

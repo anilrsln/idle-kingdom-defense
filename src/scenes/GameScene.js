@@ -181,26 +181,33 @@ export default class GameScene extends Phaser.Scene {
   }
 
   drawLava() {
-    const lavaY = CONFIG.CANVAS_HEIGHT - CONFIG.LAVA_HEIGHT;
-    // Ana lava
-    this.lavaRect = this.add.rectangle(
-      CONFIG.LAVA_X / 2, lavaY + CONFIG.LAVA_HEIGHT / 2,
-      CONFIG.LAVA_X, CONFIG.LAVA_HEIGHT, CONFIG.COLORS.LAVA
-    ).setDepth(1).setAlpha(0.8);
+    // Lava: lazerin hemen sağında, corridor boyunca dikey ateş duvarı
+    // Laser x = WALL_X+40, lava sol kenarı = laser sağı + 10px boşluk
+    const laserX = CONFIG.WALL_X + 40;
+    const lavaW = 18;                  // ince ateş şeridi
+    const lavaCX = laserX + 10 + lavaW / 2;
+    const lavaH = CONFIG.CORRIDOR_BOTTOM - CONFIG.CORRIDOR_TOP;
+    const lavaCY = CONFIG.CORRIDOR_TOP + lavaH / 2;
 
-    // Lava glow animasyonu
+    // CONFIG.LAVA_X'i runtime'da güncelle ki Enemy triggerı doğru çalışsın
+    CONFIG.LAVA_X = Math.round(lavaCX - lavaW / 2);
+
+    this.lavaRect = this.add.rectangle(
+      lavaCX, lavaCY, lavaW, lavaH, CONFIG.COLORS.LAVA
+    ).setDepth(3).setAlpha(0.75);
+
     this.tweens.add({
-      targets: this.lavaRect, alpha: 0.6,
-      duration: 1500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+      targets: this.lavaRect, alpha: 0.45,
+      duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
     });
 
-    // Glow efekti üstte
+    // Glow: sağ tarafına (düşman tarafı)
     const glowRect = this.add.rectangle(
-      CONFIG.LAVA_X / 2, lavaY, CONFIG.LAVA_X + 10, 6, CONFIG.COLORS.LAVA_GLOW
-    ).setDepth(2).setAlpha(0.3);
+      lavaCX + lavaW / 2 + 3, lavaCY, 6, lavaH, CONFIG.COLORS.LAVA_GLOW
+    ).setDepth(3).setAlpha(0.35);
     this.tweens.add({
       targets: glowRect, alpha: 0.1,
-      duration: 1000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+      duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
     });
   }
 
@@ -287,13 +294,22 @@ export default class GameScene extends Phaser.Scene {
       // Archer: sur ustunde | Cannon/Frost/Catapult: surun solunda (kale arkasi)
       const colX = { archer: CONFIG.WALL_X, cannon: 118, frost: 68, catapult: 28 };
       const x = colX[type] ?? (CONFIG.DEFENDER_X + 15);
-      // Ortadan koseye acilan lane sirasi: 0→orta, 1→orta-1, 2→orta+1, ...
       const laneSpacing = (corridorBottom - corridorTop) / laneCount;
-      const midLane = Math.floor(laneCount / 2); // orta lane indexi
-      const offsets = [0, -1, 1, -2, 2, -3, 3];
-      const laneIdx = midLane + (offsets[idx] ?? idx);
-      const clampedLane = Phaser.Math.Clamp(laneIdx, 0, laneCount - 1);
-      const y = corridorTop + laneSpacing * (clampedLane + 0.5);
+
+      let y;
+      if (type === 'catapult') {
+        // Catapult: sabit lane 2.5 ve 3.5 (5 lane içinde orta-alt bölge)
+        const catapultLanes = [2.5, 3.5];
+        const lanePos = catapultLanes[idx % catapultLanes.length] ?? 2.5;
+        y = corridorTop + laneSpacing * lanePos;
+      } else {
+        // Diğerleri: ortadan köşeye açılan sıra
+        const midLane = Math.floor(laneCount / 2);
+        const offsets = [0, -1, 1, -2, 2, -3, 3];
+        const laneIdx = midLane + (offsets[idx] ?? idx);
+        const clampedLane = Phaser.Math.Clamp(laneIdx, 0, laneCount - 1);
+        y = corridorTop + laneSpacing * (clampedLane + 0.5);
+      }
       list.push(new DefenderClass(this, x, y, idx));
     }
 
