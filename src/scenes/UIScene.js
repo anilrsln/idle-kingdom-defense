@@ -36,22 +36,24 @@ export default class UIScene extends Phaser.Scene {
     this.waveProgressFill = this.add.rectangle(0, 31, 0, 3, 0xe94560, 0.8).setDepth(101).setOrigin(0, 0.5);
 
     // MAP butonu (üst bar sağ taraf)
-    const mapBtn = this.add.rectangle(660, 15, 50, 22, CONFIG.COLORS.UI_ACCENT).setDepth(102).setInteractive({ useHandCursor: true });
+    const mapBtn = this.add.rectangle(660, 15, 50, 22, CONFIG.COLORS.UI_ACCENT).setDepth(102);
+    this.enlargeHit(mapBtn, 54, 40);
     this.add.text(660, 15, '⚔ MAP', this.textStyle(10, '#ffffff')).setOrigin(0.5).setDepth(103);
     mapBtn.on('pointerdown', () => this.openConquestMap());
     mapBtn.on('pointerover', () => mapBtn.setFillStyle(0xff6680));
     mapBtn.on('pointerout', () => mapBtn.setFillStyle(CONFIG.COLORS.UI_ACCENT));
 
     // Prestige butonu (MAP'ın solunda, sadece unlock olunca görünür)
-    this.prestigeBtn = this.add.rectangle(595, 15, 60, 22, 0x9b59b6).setDepth(102).setInteractive({ useHandCursor: true }).setVisible(false);
+    this.prestigeBtn = this.add.rectangle(595, 15, 60, 22, 0x9b59b6).setDepth(102).setVisible(false);
+    this.enlargeHit(this.prestigeBtn, 64, 40);
     this.prestigeBtnLabel = this.add.text(595, 15, '✦ PRESTIGE', this.textStyle(9, '#ffffff')).setOrigin(0.5).setDepth(103).setVisible(false);
     this.prestigeBtn.on('pointerdown', () => this.showPrestigeDialog());
     this.prestigeBtn.on('pointerover', () => this.prestigeBtn.setFillStyle(0xb07cc8));
     this.prestigeBtn.on('pointerout', () => this.prestigeBtn.setFillStyle(0x9b59b6));
 
     // Menü/Ayarlar butonu (üst bar sağ köşe) — oyunu duraklatıp menüyü açar
-    this.menuBtn = this.add.rectangle(786, 15, 24, 22, CONFIG.COLORS.UI_BUTTON, 1)
-      .setDepth(102).setInteractive({ useHandCursor: true });
+    this.menuBtn = this.add.rectangle(786, 15, 24, 22, CONFIG.COLORS.UI_BUTTON, 1).setDepth(102);
+    this.enlargeHit(this.menuBtn, 40, 40);
     this.menuBtnLabel = this.add.text(786, 15, '⚙', this.textStyle(15, '#ffffff'))
       .setOrigin(0.5).setDepth(103);
     this.menuBtn.on('pointerdown', () => this.openMenu());
@@ -169,6 +171,17 @@ export default class UIScene extends Phaser.Scene {
       fontSize: `${size}px`, fontFamily: 'monospace',
       color, stroke: '#000', strokeThickness: 1,
     };
+  }
+
+  /**
+   * Küçük bir butona, görselini değiştirmeden genişletilmiş (parmak dostu)
+   * dokunma alanı verir. hitW/hitH, objenin görsel boyutundan büyük olmalı.
+   */
+  enlargeHit(obj, hitW, hitH) {
+    const w = obj.width, h = obj.height;
+    const hit = new Phaser.Geom.Rectangle((w - hitW) / 2, (h - hitH) / 2, hitW, hitH);
+    obj.setInteractive(hit, Phaser.Geom.Rectangle.Contains, { useHandCursor: true });
+    return obj;
   }
 
   // ═══════ SEKMELER ═══════

@@ -181,15 +181,14 @@ export default class GameScene extends Phaser.Scene {
   }
 
   drawLava() {
-    // Lava: lazerin hemen sağında, corridor boyunca dikey ateş duvarı
-    // Laser x = WALL_X+40, lava sol kenarı = laser sağı + 10px boşluk
+    // Lava: lazer (WALL_X+40) hemen sağında, corridor boyunca dikey ateş şeridi
     const laserX = CONFIG.WALL_X + 40;
-    const lavaW = 18;                  // ince ateş şeridi
-    const lavaCX = laserX + 10 + lavaW / 2;
+    const lavaW = 18;
+    const lavaCX = laserX + 12 + lavaW / 2;  // lazer sağından 12px boşluk
     const lavaH = CONFIG.CORRIDOR_BOTTOM - CONFIG.CORRIDOR_TOP;
     const lavaCY = CONFIG.CORRIDOR_TOP + lavaH / 2;
 
-    // CONFIG.LAVA_X'i runtime'da güncelle ki Enemy triggerı doğru çalışsın
+    // CONFIG.LAVA_X'i runtime'da güncelle — Enemy trigger buradan okur
     CONFIG.LAVA_X = Math.round(lavaCX - lavaW / 2);
 
     this.lavaRect = this.add.rectangle(
@@ -201,12 +200,12 @@ export default class GameScene extends Phaser.Scene {
       duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
     });
 
-    // Glow: sağ tarafına (düşman tarafı)
+    // Glow: sağ tarafında ince şerit
     const glowRect = this.add.rectangle(
       lavaCX + lavaW / 2 + 3, lavaCY, 6, lavaH, CONFIG.COLORS.LAVA_GLOW
-    ).setDepth(3).setAlpha(0.35);
+    ).setDepth(3).setAlpha(0.4);
     this.tweens.add({
-      targets: glowRect, alpha: 0.1,
+      targets: glowRect, alpha: 0.12,
       duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
     });
   }
@@ -294,22 +293,13 @@ export default class GameScene extends Phaser.Scene {
       // Archer: sur ustunde | Cannon/Frost/Catapult: surun solunda (kale arkasi)
       const colX = { archer: CONFIG.WALL_X, cannon: 118, frost: 68, catapult: 28 };
       const x = colX[type] ?? (CONFIG.DEFENDER_X + 15);
+      // Ortadan koseye acilan lane sirasi: 0→orta, 1→orta-1, 2→orta+1, ...
       const laneSpacing = (corridorBottom - corridorTop) / laneCount;
-
-      let y;
-      if (type === 'catapult') {
-        // Catapult: sabit lane 2.5 ve 3.5 (5 lane içinde orta-alt bölge)
-        const catapultLanes = [2.5, 3.5];
-        const lanePos = catapultLanes[idx % catapultLanes.length] ?? 2.5;
-        y = corridorTop + laneSpacing * lanePos;
-      } else {
-        // Diğerleri: ortadan köşeye açılan sıra
-        const midLane = Math.floor(laneCount / 2);
-        const offsets = [0, -1, 1, -2, 2, -3, 3];
-        const laneIdx = midLane + (offsets[idx] ?? idx);
-        const clampedLane = Phaser.Math.Clamp(laneIdx, 0, laneCount - 1);
-        y = corridorTop + laneSpacing * (clampedLane + 0.5);
-      }
+      const midLane = Math.floor(laneCount / 2); // orta lane indexi
+      const offsets = [0, -1, 1, -2, 2, -3, 3];
+      const laneIdx = midLane + (offsets[idx] ?? idx);
+      const clampedLane = Phaser.Math.Clamp(laneIdx, 0, laneCount - 1);
+      const y = corridorTop + laneSpacing * (clampedLane + 0.5);
       list.push(new DefenderClass(this, x, y, idx));
     }
 

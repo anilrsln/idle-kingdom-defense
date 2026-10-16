@@ -125,16 +125,43 @@ export default class ConquestScene extends Phaser.Scene {
       const sub = this.add.text(x, y + 9, costStr, this.ts(8, unlocked ? '#66ff88' : '#666688')).setOrigin(0.5).setDepth(3);
 
       bg.setInteractive({ useHandCursor: true });
-      bg.on('pointerdown',  () => this.onNodeClick(node));
-      bg.on('pointerover',  () => this.showTip(node, x, y - NH / 2 - 18));
-      bg.on('pointerout',   () => this.hideTip());
+      // Masaüstü: hover tooltip gösterir, tık satın alır.
+      // Dokunmatik: ilk tap tooltip gösterir + node'u 'armed' yapar, ikinci tap satın alır.
+      bg.on('pointerover', (p) => { if (!p || p.pointerType !== 'touch') this.showTip(node, x, y - NH / 2 - 18); });
+      bg.on('pointerout',  (p) => { if (!p || p.pointerType !== 'touch') this.hideTip(); });
+      bg.on('pointerdown', (p) => { this._downNode = node.id; this._downX = p.x; this._downY = p.y; });
+      bg.on('pointerup',   (p) => this.onNodePointerUp(node, p, x, y - NH / 2 - 18));
 
       this.sc.add([bg, lbl, sub]);
       this.nodeElements.push([bg, lbl, sub]);
     }
   }
 
-  onNodeClick(node) {
+  // pointerup: tap mı yoksa scroll/drag mı olduğunu ayırt eder.
+  onNodePointerUp(node, p, tipX, tipY) {
+    // Aynı node üzerinde basılıp bırakılmadıysa (başka yere kaydırıldı) yok say.
+    if (this._downNode !== node.id) return;
+    this._downNode = null;
+
+    // Parmak kaydıysa (drag/scroll) satın alma — sadece gerçek tap kabul et.
+    const moved = Math.abs(p.x - this._downX) + Math.abs(p.y - this._downY);
+    if (moved > 12) return;
+
+    const isTouch = p && p.pointerType === 'touch';
+    if (isTouch) {
+      // İlk tap: tooltip göster + bu node'u 'armed' yap. İkinci tap (aynı node): satın al.
+      if (this._armedNode !== node.id) {
+        this._armedNode = node.id;
+        this.showTip(node, tipX, tipY);
+        return;
+      }
+      // İkinci tap aynı node'da → satın almaya düş.
+    }
+    this.purchaseNode(node);
+  }
+
+  purchaseNode(node) {
+    this._armedNode = null;
     if (ConquestManager.purchase(node.id)) {
       this.game.events.emit('sfx', 'hire');
       this.drawConnections();
