@@ -285,7 +285,7 @@ export default class GameScene extends Phaser.Scene {
       const laneCount = CONFIG.LANE_COUNT;
       // Kolon x'leri: archer duvarda, diger tipler surun arkasinda
       // Archer: sur ustunde | Cannon/Frost/Catapult: surun solunda (kale arkasi)
-      const colX = { archer: CONFIG.WALL_X, cannon: 190, frost: 140, catapult: 90 };
+      const colX = { archer: CONFIG.WALL_X, cannon: 118, frost: 68, catapult: 28 };
       const x = colX[type] ?? (CONFIG.DEFENDER_X + 15);
       // Ortadan koseye acilan lane sirasi: 0→orta, 1→orta-1, 2→orta+1, ...
       const laneSpacing = (corridorBottom - corridorTop) / laneCount;

@@ -7,7 +7,7 @@ export const CONFIG = {
   CANVAS_HEIGHT: 500,
 
   // Sahne konumları
-  WALL_X: 240,         // sur x'i (3x — haritanin 1/3 noktasinda)
+  WALL_X: 168,         // sur x'i (2x sur genisligi = 72px sola kaydi)
   CORRIDOR_TOP: 35,    // topbar (30px) hemen alti
   CORRIDOR_BOTTOM: 375,// alt UI panelinin (panelY=380) 5px ustunde biter
   LANE_COUNT: 5,       // toplam lane sayisi (tam oyun alani)
